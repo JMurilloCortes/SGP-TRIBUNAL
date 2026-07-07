@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Box, Typography, ToggleButtonGroup, ToggleButton, CircularProgress } from '@mui/material'
 import api from '../services/api'
 import { connectSocket, disconnectSocket } from '../services/socket'
@@ -20,7 +20,7 @@ export default function ConsecutivosPage() {
   const [filtro, setFiltro] = useState<Filtro>('TODOS')
   const [tomando, setTomando] = useState<number | null>(null)
   const { user, token } = useAuth()
-  const socketRef = useRef<any>(null)
+  const snapshots = useRef<Map<number, Consecutivo>>(new Map())
 
   useEffect(() => {
     api.get<Consecutivo[]>('/consecutivos').then(r => {
@@ -32,9 +32,14 @@ export default function ConsecutivosPage() {
   useEffect(() => {
     if (!token) return
     const socket = connectSocket(token)
-    socketRef.current = socket
     socket.on('consecutivo:update', (c: Consecutivo) => {
-      setConsecutivos(prev => prev.map(p => p.id === c.id ? c : p))
+      setConsecutivos(prev => {
+        const i = prev.findIndex(p => p.id === c.id)
+        if (i === -1) return prev
+        const copy = [...prev]
+        copy[i] = c
+        return copy
+      })
     })
     return () => {
       socket.off('consecutivo:update')
@@ -42,18 +47,76 @@ export default function ConsecutivosPage() {
     }
   }, [token])
 
+  const revertIfUnchanged = useCallback((id: number, snapshot: Consecutivo) => {
+    setConsecutivos(prev => {
+      if (snapshots.current.get(id) !== snapshot) return prev
+      const i = prev.findIndex(p => p.id === id)
+      if (i === -1) return prev
+      const copy = [...prev]
+      copy[i] = snapshot
+      return copy
+    })
+  }, [])
+
   async function handleClick(c: Consecutivo) {
     if (tomando) return
     setTomando(c.id)
-    try {
-      if (c.estado === 'DISPONIBLE') {
+
+    if (c.estado === 'DISPONIBLE') {
+      const snapshot = { ...c }
+      snapshots.current.set(c.id, snapshot)
+
+      setConsecutivos(prev => {
+        const i = prev.findIndex(p => p.id === c.id)
+        if (i === -1) return prev
+        const copy = [...prev]
+        copy[i] = { ...c, estado: 'OCUPADO', tomadoUser: user ? { nombre: user.nombre } : null }
+        return copy
+      })
+
+      try {
         const r = await api.patch(`/consecutivos/${c.id}/ocupar`)
-        if (r.data?.id) setConsecutivos(prev => prev.map(p => p.id === c.id ? r.data : p))
-      } else if (user?.rol === 'ADMIN') {
-        const r = await api.patch(`/consecutivos/${c.id}/liberar`)
-        if (r.data?.id) setConsecutivos(prev => prev.map(p => p.id === c.id ? r.data : p))
+        snapshots.current.delete(c.id)
+        if (r.data?.id) {
+          setConsecutivos(prev => {
+            const i = prev.findIndex(p => p.id === c.id)
+            if (i === -1) return prev
+            const copy = [...prev]
+            copy[i] = r.data
+            return copy
+          })
+        }
+      } catch {
+        revertIfUnchanged(c.id, snapshot)
       }
-    } catch { }
+    } else if (user?.rol === 'ADMIN' && c.estado === 'OCUPADO') {
+      const snapshot = { ...c }
+      snapshots.current.set(c.id, snapshot)
+
+      setConsecutivos(prev => {
+        const i = prev.findIndex(p => p.id === c.id)
+        if (i === -1) return prev
+        const copy = [...prev]
+        copy[i] = { ...c, estado: 'DISPONIBLE', tomadoUser: null }
+        return copy
+      })
+
+      try {
+        const r = await api.patch(`/consecutivos/${c.id}/liberar`)
+        snapshots.current.delete(c.id)
+        if (r.data?.id) {
+          setConsecutivos(prev => {
+            const i = prev.findIndex(p => p.id === c.id)
+            if (i === -1) return prev
+            const copy = [...prev]
+            copy[i] = r.data
+            return copy
+          })
+        }
+      } catch {
+        revertIfUnchanged(c.id, snapshot)
+      }
+    }
     setTomando(null)
   }
 
@@ -88,32 +151,39 @@ export default function ConsecutivosPage() {
 
       <Box sx={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(44px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(54px, 1fr))',
         gap: '3px',
       }}>
         {filtrados.map(c => (
           <div
             key={c.id}
             onClick={() => handleClick(c)}
-            title={`#${c.numero}${c.tomadoUser ? ' - ' + primerNombre(c.tomadoUser.nombre) : ''}`}
+            title={`#${c.numero}${c.tomadoUser ? ' - ' + c.tomadoUser.nombre : ''}`}
             style={{
-              aspectRatio: '1',
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '0.7rem',
+              height: 48,
+              fontSize: '0.75rem',
               fontWeight: 700,
               borderRadius: 4,
               cursor: tomando === c.id ? 'wait' : 'pointer',
               backgroundColor: c.estado === 'DISPONIBLE' ? '#2e7d32' : '#d32f2f',
               color: '#fff',
-              transition: 'background-color 0.15s',
+              transition: 'background-color 0.1s',
               userSelect: 'none',
+              lineHeight: 1.1,
             }}
-            onMouseEnter={e => { (e.target as HTMLElement).style.opacity = '0.8' }}
+            onMouseEnter={e => { (e.target as HTMLElement).style.opacity = '0.85' }}
             onMouseLeave={e => { (e.target as HTMLElement).style.opacity = '1' }}
           >
-            {c.numero}
+            <span>{c.numero}</span>
+            {c.tomadoUser && (
+              <span style={{ fontSize: '0.55rem', fontWeight: 400, opacity: 0.9 }}>
+                {primerNombre(c.tomadoUser.nombre)}
+              </span>
+            )}
           </div>
         ))}
       </Box>
