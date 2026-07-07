@@ -1,0 +1,206 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Rol {
+  ADMIN
+  ESCRIBIENTE
+}
+
+enum Instancia {
+  PRIMERA
+  SEGUNDA
+}
+
+enum ColorEstado {
+  VERDE
+  AMARILLO
+  NARANJA
+  ROJO
+  GRIS
+}
+
+enum OrdenProvidencia {
+  ADMITIR
+  INADMITIR
+  RECHAZAR
+  SENTENCIA
+  ARCHIVAR
+  REMITIR_CORTE
+  REMITIR_CONSEJO_ESTADO
+  DEVOLVER_JUZGADO
+  OTRO
+}
+
+enum TipoNotificacion {
+  ALERTA_VENCIMIENTO
+  VENCIDO
+  TAREA
+  INFO
+}
+
+enum EstadoTermino {
+  PENDIENTE
+  CUMPLIDO
+  VENCIDO
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  nombre       String
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  rol          Rol
+  activo       Boolean   @default(true)
+  despachoId   Int?      @map("despacho_id")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  despacho     Despacho?     @relation(fields: [despachoId], references: [id])
+  actuaciones  Actuacion[]
+  notificaciones Notificacion[]
+
+  @@map("users")
+}
+
+model Despacho {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  codigo    String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  usuarios  User[]
+  procesos  Proceso[]
+
+  @@map("despachos")
+}
+
+model ClaseProceso {
+  id        Int      @id @default(autoincrement())
+  nombre    String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  procesos  Proceso[]
+
+  @@map("clases_proceso")
+}
+
+model Etapa {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @unique
+  descripcion String?
+  orden       Int
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  procesos    Proceso[]
+
+  @@map("etapas")
+}
+
+model Proceso {
+  id                        Int         @id @default(autoincrement())
+  radicado                  String      @unique
+  demandante                String
+  demandado                 String
+  instancia                 Instancia
+  fechaIngresoTribunal      DateTime    @map("fecha_ingreso_tribunal")
+  fechaPrimeraInstancia     DateTime?   @map("fecha_primera_instancia")
+  fechaSegundaInstancia     DateTime?   @map("fecha_segunda_instancia")
+  juzgadoOrigen             String?     @map("juzgado_origen")
+  vigente                   Boolean     @default(true)
+  colorEstado               ColorEstado @default(VERDE) @map("color_estado")
+  despachoActualId          Int         @map("despacho_actual_id")
+  etapaActualId             Int         @map("etapa_actual_id")
+  claseProcesoId            Int         @map("clase_proceso_id")
+  createdAt                 DateTime    @default(now()) @map("created_at")
+  updatedAt                 DateTime    @updatedAt @map("updated_at")
+
+  claseProceso      ClaseProceso      @relation(fields: [claseProcesoId], references: [id])
+  despachoActual    Despacho          @relation(fields: [despachoActualId], references: [id])
+  etapaActual       Etapa             @relation(fields: [etapaActualId], references: [id])
+  providencias      Providencia[]
+  terminos          TerminoProceso[]
+  notificaciones    Notificacion[]
+  actuaciones       Actuacion[]
+
+  @@map("procesos")
+}
+
+model TipoProvidencia {
+  id                  Int     @id @default(autoincrement())
+  nombre              String  @unique
+  diasTermino         Int     @map("dias_termino")
+  ordenPredeterminada OrdenProvidencia @default(OTRO) @map("orden_predeterminada")
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  providencias Providencia[]
+
+  @@map("tipos_providencia")
+}
+
+model Providencia {
+  id                Int      @id @default(autoincrement())
+  procesoId         Int      @map("proceso_id")
+  tipoProvidenciaId Int      @map("tipo_providencia_id")
+  fechaProvidencia  DateTime @map("fecha_providencia")
+  fechaNotificacion DateTime @map("fecha_notificacion")
+  descripcion       String?
+  orden             OrdenProvidencia @default(OTRO)
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  proceso       Proceso          @relation(fields: [procesoId], references: [id])
+  tipoProvidencia TipoProvidencia @relation(fields: [tipoProvidenciaId], references: [id])
+  terminos      TerminoProceso[]
+
+  @@map("providencias")
+}
+
+model TerminoProceso {
+  id                Int           @id @default(autoincrement())
+  procesoId         Int           @map("proceso_id")
+  providenciaId     Int           @map("providencia_id")
+  diasTotales       Int           @map("dias_totales")
+  fechaInicio       DateTime      @map("fecha_inicio")
+  fechaVencimiento  DateTime      @map("fecha_vencimiento")
+  fechaCumplimiento DateTime?     @map("fecha_cumplimiento")
+  estado            EstadoTermino @default(PENDIENTE)
+  createdAt         DateTime      @default(now()) @map("created_at")
+
+  proceso     Proceso     @relation(fields: [procesoId], references: [id])
+  providencia Providencia @relation(fields: [providenciaId], references: [id])
+
+  @@map("terminos_proceso")
+}
+
+model Notificacion {
+  id        Int              @id @default(autoincrement())
+  userId    Int?             @map("user_id")
+  procesoId Int              @map("proceso_id")
+  tipo      TipoNotificacion
+  mensaje   String
+  leida     Boolean          @default(false)
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user    User?    @relation(fields: [userId], references: [id])
+  proceso Proceso  @relation(fields: [procesoId], references: [id])
+
+  @@map("notificaciones")
+}
+
+model Actuacion {
+  id          Int      @id @default(autoincrement())
+  procesoId   Int      @map("proceso_id")
+  userId      Int      @map("user_id")
+  descripcion String
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  proceso Proceso @relation(fields: [procesoId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@map("actuaciones")
+}
