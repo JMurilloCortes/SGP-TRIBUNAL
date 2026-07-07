@@ -92,9 +92,10 @@ export default function UserForm() {
             <Grid item xs={12}>
               <FormControl fullWidth required>
                 <InputLabel>Rol</InputLabel>
-                <Select value={rol} label="Rol" onChange={e => setRol(e.target.value as 'ADMIN' | 'ESCRIBIENTE')}>
+                <Select value={rol} label="Rol" onChange={e => setRol(e.target.value as 'ADMIN' | 'ESCRIBIENTE' | 'NOTIFICADOR')}>
                   <MenuItem value="ADMIN">Administrador</MenuItem>
                   <MenuItem value="ESCRIBIENTE">Escribiente</MenuItem>
+                  <MenuItem value="NOTIFICADOR">Notificador</MenuItem>
                 </Select>
               </FormControl>
             </Grid>

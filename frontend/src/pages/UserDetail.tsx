@@ -46,8 +46,8 @@ export default function UserDetail() {
           </Grid>
           <Grid item xs={6}>
             <Typography variant="body2" color="text.secondary">Rol</Typography>
-            <Chip label={user.rol === 'ADMIN' ? 'Administrador' : 'Escribiente'}
-              color={user.rol === 'ADMIN' ? 'primary' : 'default'} size="small" />
+            <Chip label={user.rol === 'ADMIN' ? 'Administrador' : user.rol === 'NOTIFICADOR' ? 'Notificador' : 'Escribiente'}
+              color={user.rol === 'ADMIN' ? 'primary' : user.rol === 'NOTIFICADOR' ? 'success' : 'default'} size="small" />
           </Grid>
           <Grid item xs={6}>
             <Typography variant="body2" color="text.secondary">Estado</Typography>

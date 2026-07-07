@@ -54,8 +54,8 @@ export default function UsersList() {
                 <TableCell><Typography fontWeight="medium">{u.nombre}</Typography></TableCell>
                 <TableCell>{u.email}</TableCell>
                 <TableCell>
-                  <Chip label={u.rol === 'ADMIN' ? 'Admin' : 'Escribiente'}
-                    color={u.rol === 'ADMIN' ? 'primary' : 'default'} size="small" />
+                  <Chip label={u.rol === 'ADMIN' ? 'Admin' : u.rol === 'NOTIFICADOR' ? 'Notificador' : 'Escribiente'}
+                    color={u.rol === 'ADMIN' ? 'primary' : u.rol === 'NOTIFICADOR' ? 'success' : 'default'} size="small" />
                 </TableCell>
                 <TableCell>
                   {u.despachos?.length > 0
@@ -64,7 +64,7 @@ export default function UsersList() {
                 </TableCell>
                 <TableCell>
                   <Box display="flex" alignItems="center" gap={1}>
-                    <Switch checked={u.activo} disabled={u.rol === 'ADMIN'}
+                    <Switch checked={u.activo} disabled={u.rol === 'ADMIN' || u.rol === 'NOTIFICADOR'}
                       onChange={() => handleToggleActivo(u.id)} size="small" />
                     <Chip label={u.activo ? 'Activo' : 'Inactivo'}
                       color={u.activo ? 'success' : 'error'} size="small" />
