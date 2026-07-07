@@ -5,14 +5,22 @@ import { TipoNotificacion } from '@prisma/client'
 
 export async function list(req: AuthRequest, res: Response) {
   const { soloNoLeidas } = req.query
+  const userId = req.user!.userId
+  const rol = req.user!.rol
+  const despachoIds = req.despachoIds || []
 
   const where: any = {
     OR: [
-      { userId: req.user!.userId },
+      { userId },
       { userId: null },
     ],
   }
   if (soloNoLeidas === 'true') where.leida = false
+
+  // Escribientes solo ven notificaciones de procesos en sus despachos
+  if (rol === 'ESCRIBIENTE' && despachoIds.length > 0) {
+    where.proceso = { despachoActualId: { in: despachoIds } }
+  }
 
   const data = await prisma.notificacion.findMany({
     where,
@@ -22,6 +30,7 @@ export async function list(req: AuthRequest, res: Response) {
           id: true,
           radicado: true,
           colorEstado: true,
+          despachoActualId: true,
         },
       },
     },
@@ -32,6 +41,9 @@ export async function list(req: AuthRequest, res: Response) {
   const noLeidas = await prisma.notificacion.count({
     where: {
       ...where,
+      ...(rol === 'ESCRIBIENTE' && despachoIds.length > 0
+        ? { proceso: { despachoActualId: { in: despachoIds } } }
+        : {}),
       leida: false,
     },
   })
