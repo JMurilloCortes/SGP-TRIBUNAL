@@ -72,7 +72,7 @@ export default function ConsecutivosPage() {
   }, [])
 
   async function handleClick(c: Consecutivo) {
-    if (tomando) return
+    if (tomando || bloqueados.has(c.id)) return
     setTomando(c.id)
 
     if (c.estado === 'DISPONIBLE') {
@@ -108,6 +108,17 @@ export default function ConsecutivosPage() {
     }
     setTomando(null)
   }
+
+  const disponiblesMap = new Map(consecutivos.filter(c => c.estado === 'DISPONIBLE').map(c => [c.numero, c]))
+  const bloqueados = new Set(
+    [...disponiblesMap.entries()]
+      .filter(([num]) => {
+        if (num === '0001') return false
+        const anterior = String(parseInt(num, 10) - 1).padStart(4, '0')
+        return disponiblesMap.has(anterior)
+      })
+      .map(([_, c]) => c.id)
+  )
 
   const filtrados = consecutivos.filter(c => {
     if (filtro === 'DISPONIBLE') return c.estado === 'DISPONIBLE'
@@ -146,38 +157,45 @@ export default function ConsecutivosPage() {
           gridTemplateColumns: 'repeat(auto-fill, minmax(54px, 1fr))',
           gap: '3px',
         }}>
-          {filtrados.map(c => (
-            <div
-              key={c.id}
-              onClick={() => handleClick(c)}
-              title={`#${c.numero}${c.tomadoUser ? ' - ' + c.tomadoUser.nombre : ''}`}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: 48,
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                borderRadius: 4,
-                cursor: tomando === c.id ? 'wait' : 'pointer',
-                backgroundColor: c.estado === 'DISPONIBLE' ? '#2e7d32' : '#d32f2f',
-                color: '#fff',
-                transition: 'background-color 0.1s',
-                userSelect: 'none',
-                lineHeight: 1.1,
-              }}
-              onMouseEnter={e => { (e.target as HTMLElement).style.opacity = '0.85' }}
-              onMouseLeave={e => { (e.target as HTMLElement).style.opacity = '1' }}
-            >
-              <span>{c.numero}</span>
-              {c.tomadoUser && (
-                <span style={{ fontSize: '0.55rem', fontWeight: 400, opacity: 0.9 }}>
-                  {primerNombre(c.tomadoUser.nombre)}
-                </span>
-              )}
-            </div>
-          ))}
+          {filtrados.map(c => {
+            const bloqueado = bloqueados.has(c.id)
+            const bg = bloqueado ? '#757575' : c.estado === 'DISPONIBLE' ? '#2e7d32' : '#d32f2f'
+            return (
+              <div
+                key={c.id}
+                onClick={() => handleClick(c)}
+                title={`#${c.numero}${bloqueado ? ' (tome primero #' + String(parseInt(c.numero, 10) - 1).padStart(4, '0') + ')' : c.tomadoUser ? ' - ' + c.tomadoUser.nombre : ''}`}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: 48,
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  borderRadius: 4,
+                  cursor: bloqueado ? 'not-allowed' : tomando === c.id ? 'wait' : 'pointer',
+                  backgroundColor: bg,
+                  color: '#fff',
+                  transition: 'background-color 0.1s',
+                  userSelect: 'none',
+                  lineHeight: 1.1,
+                }}
+                onMouseEnter={e => { if (!bloqueado) (e.target as HTMLElement).style.opacity = '0.85' }}
+                onMouseLeave={e => { (e.target as HTMLElement).style.opacity = '1' }}
+              >
+                <span>{c.numero}</span>
+                {c.tomadoUser && (
+                  <span style={{ fontSize: '0.55rem', fontWeight: 400, opacity: 0.9 }}>
+                    {primerNombre(c.tomadoUser.nombre)}
+                  </span>
+                )}
+                {bloqueado && (
+                  <span style={{ fontSize: '0.45rem', fontWeight: 400, opacity: 0.7 }}>bloq</span>
+                )}
+              </div>
+            )
+          })}
         </Box>
       )}
     </Box>

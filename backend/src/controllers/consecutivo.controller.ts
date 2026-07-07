@@ -26,6 +26,16 @@ export async function ocupar(req: Request, res: Response) {
       if (!c) throw new Error('No encontrado')
       if (c.estado !== 'DISPONIBLE') throw new Error('Ya está ocupado')
 
+      // Validar orden: no permitir si el número anterior está disponible
+      const numActual = parseInt(c.numero, 10)
+      if (numActual > 1) {
+        const anterior = String(numActual - 1).padStart(4, '0')
+        const prev = await tx.consecutivo.findFirst({
+          where: { numero: anterior, tipo: c.tipo, estado: 'DISPONIBLE' },
+        })
+        if (prev) throw new Error(`Debe tomar primero el número #${anterior}`)
+      }
+
       return tx.consecutivo.update({
         where: { id: Number(id) },
         data: { estado: 'OCUPADO', tomadoPor: userId },
