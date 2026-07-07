@@ -9,7 +9,6 @@ import { crearNotificacion } from './notificacion.controller'
 const createProvidenciaSchema = z.object({
   tipoProvidenciaId: z.number().int().positive(),
   fechaProvidencia: z.string(),
-  fechaNotificacion: z.string(),
   descripcion: z.string().optional(),
   orden: z.string().optional(),
 })
@@ -39,22 +38,67 @@ export async function create(req: AuthRequest, res: Response) {
   })
   if (!tipo) return res.status(400).json({ message: 'Tipo de providencia inválido' })
 
-  const fechaNotificacion = new Date(data.fechaNotificacion)
-  const fechaVencimiento = addBusinessDays(fechaNotificacion, tipo.diasTermino)
-
   const providencia = await prisma.providencia.create({
     data: {
       procesoId,
       tipoProvidenciaId: data.tipoProvidenciaId,
       fechaProvidencia: new Date(data.fechaProvidencia),
-      fechaNotificacion,
+      fechaNotificacion: null,
       descripcion: data.descripcion ?? null,
       orden: (data.orden as any) ?? tipo.ordenPredeterminada,
+    },
+    include: {
+      tipoProvidencia: true,
+    },
+  })
+
+  // Create actuacion
+  await prisma.actuacion.create({
+    data: {
+      procesoId,
+      userId: req.user!.userId,
+      descripcion: `Se registró providencia: ${tipo.nombre} (pendiente de notificar)`,
+    },
+  })
+
+  // Notify notificadores about pending notification
+  const notificadores = await prisma.user.findMany({
+    where: { activo: true, rol: 'NOTIFICADOR' },
+  })
+  for (const user of notificadores) {
+    await crearNotificacion(
+      procesoId,
+      'TAREA',
+      `Providencia pendiente de notificar: ${tipo.nombre} en proceso ${proceso.radicado}`,
+      user.id,
+    )
+  }
+
+  return res.status(201).json(providencia)
+}
+
+export async function notificar(req: AuthRequest, res: Response) {
+  const id = parseInt(req.params.id as string)
+
+  const providencia = await prisma.providencia.findUnique({
+    where: { id },
+    include: { proceso: true, tipoProvidencia: true },
+  })
+  if (!providencia) return res.status(404).json({ message: 'Providencia no encontrada' })
+  if (providencia.fechaNotificacion) return res.status(400).json({ message: 'Esta providencia ya fue notificada' })
+
+  const ahora = new Date()
+  const fechaVencimiento = addBusinessDays(ahora, providencia.tipoProvidencia.diasTermino)
+
+  const updated = await prisma.providencia.update({
+    where: { id },
+    data: {
+      fechaNotificacion: ahora,
       terminos: {
         create: {
-          procesoId,
-          diasTotales: tipo.diasTermino,
-          fechaInicio: fechaNotificacion,
+          procesoId: providencia.procesoId,
+          diasTotales: providencia.tipoProvidencia.diasTermino,
+          fechaInicio: ahora,
           fechaVencimiento,
           estado: EstadoTermino.PENDIENTE,
         },
@@ -69,36 +113,50 @@ export async function create(req: AuthRequest, res: Response) {
   // Update proceso color
   const color = calcularColor(fechaVencimiento)
   await prisma.proceso.update({
-    where: { id: procesoId },
+    where: { id: providencia.procesoId },
     data: { colorEstado: color },
   })
 
   // Create actuacion
   await prisma.actuacion.create({
     data: {
-      procesoId,
+      procesoId: providencia.procesoId,
       userId: req.user!.userId,
-      descripcion: `Se registró providencia: ${tipo.nombre}`,
+      descripcion: `Providencia notificada: ${providencia.tipoProvidencia.nombre}. Término: ${providencia.tipoProvidencia.diasTermino} días hábiles`,
     },
   })
 
-  // Create notification for users in the despacho
+  // Notify users in the despacho
   const users = await prisma.user.findMany({
     where: {
       activo: true,
-      despachos: { some: { despachoId: proceso.despachoActualId } },
+      despachos: { some: { despachoId: providencia.proceso.despachoActualId } },
     },
   })
   for (const user of users) {
     await crearNotificacion(
-      procesoId,
+      providencia.procesoId,
       'TAREA',
-      `Nueva providencia: ${tipo.nombre} en proceso ${proceso.radicado}. Término: ${tipo.diasTermino} días hábiles. Vence: ${fechaVencimiento.toLocaleDateString('es-CO')}`,
+      `Providencia notificada: ${providencia.tipoProvidencia.nombre} en proceso ${providencia.proceso.radicado}. Término: ${providencia.tipoProvidencia.diasTermino} días hábiles. Vence: ${fechaVencimiento.toLocaleDateString('es-CO')}`,
       user.id,
     )
   }
 
-  return res.status(201).json(providencia)
+  return res.json(updated)
+}
+
+export async function listPendientes(_req: AuthRequest, res: Response) {
+  const data = await prisma.providencia.findMany({
+    where: { fechaNotificacion: null },
+    include: {
+      proceso: {
+        select: { id: true, radicado: true, demandante: true, demandado: true, despachoActual: { select: { nombre: true, codigo: true } } },
+      },
+      tipoProvidencia: true,
+    },
+    orderBy: { createdAt: 'desc' },
+  })
+  return res.json(data)
 }
 
 export async function remove(req: AuthRequest, res: Response) {

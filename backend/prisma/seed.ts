@@ -170,10 +170,24 @@ async function main() {
   console.log('Seed ejecutado correctamente')
   console.log(`- ${despachos.length} despachos`)
   console.log(`- ${juzgados.length} juzgados administrativos`)
-  console.log(`- 1 admin + 3 escribientes`)
+  // === 1 NOTIFICADOR ===
+  const notHash = await bcrypt.hash('notificador1', 10)
+  await prisma.user.upsert({
+    where: { email: 'juan.notificador@tribunalchoco.gov.co' },
+    update: {},
+    create: {
+      nombre: 'Juan Martínez',
+      email: 'juan.notificador@tribunalchoco.gov.co',
+      passwordHash: notHash,
+      rol: 'NOTIFICADOR' as any,
+    },
+  })
+
+  console.log(`- 1 admin + 3 escribientes + 1 notificador`)
   console.log('  Andrés García → D001, D002')
   console.log('  María López   → D003, D004')
   console.log('  Carlos Pérez  → D005')
+  console.log('  Juan Martínez → Notificador (sin despacho)')
 }
 
 main()

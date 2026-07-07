@@ -2,7 +2,7 @@ export interface User {
   id: number
   nombre: string
   email: string
-  rol: 'ADMIN' | 'ESCRIBIENTE'
+  rol: 'ADMIN' | 'ESCRIBIENTE' | 'NOTIFICADOR'
   despachos: Despacho[]
   activo: boolean
 }
@@ -67,7 +67,7 @@ export interface Providencia {
   procesoId: number
   tipoProvidenciaId: number
   fechaProvidencia: string
-  fechaNotificacion: string
+  fechaNotificacion: string | null
   descripcion: string | null
   orden: string
   createdAt: string

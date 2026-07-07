@@ -22,8 +22,12 @@ export default function Layout() {
 
   const menuItems = [
     { text: 'Dashboard', icon: <Dashboard />, path: '/' },
-    { text: 'Registrar Proceso', icon: <AddCircle />, path: '/procesos/nuevo' },
-    { text: 'Procesos', icon: <Gavel />, path: '/procesos' },
+    ...(user?.rol === 'NOTIFICADOR'
+      ? [{ text: 'Pendientes Notificación', icon: <NotificationsIcon />, path: '/notificaciones/pendientes' }]
+      : [
+          { text: 'Registrar Proceso', icon: <AddCircle />, path: '/procesos/nuevo' },
+          { text: 'Procesos', icon: <Gavel />, path: '/procesos' },
+        ]),
     { text: 'Notificaciones', icon: <NotificationsIcon />, path: '/notificaciones' },
     ...(user?.rol === 'ADMIN' ? [{ text: 'Usuarios', icon: <Person />, path: '/usuarios' }] : []),
   ]

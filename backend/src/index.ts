@@ -9,6 +9,7 @@ import providenciaRoutes from './routes/providencia.routes'
 import dashboardRoutes from './routes/dashboard.routes'
 import notificacionRoutes from './routes/notificacion.routes'
 import userRoutes from './routes/user.routes'
+import oficioRoutes from './routes/oficio.routes'
 import { verificarTerminosVencidos } from './controllers/providencia.controller'
 import { generarAlertasTerminos } from './controllers/notificacion.controller'
 
@@ -24,6 +25,7 @@ app.use('/api', providenciaRoutes)
 app.use('/api/dashboard', dashboardRoutes)
 app.use('/api/notificaciones', notificacionRoutes)
 app.use('/api/users', userRoutes)
+app.use('/api/oficios', oficioRoutes)
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })

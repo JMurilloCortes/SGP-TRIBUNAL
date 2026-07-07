@@ -10,6 +10,7 @@ datasource db {
 enum Rol {
   ADMIN
   ESCRIBIENTE
+  NOTIFICADOR
 }
 
 enum Instancia {
@@ -166,20 +167,29 @@ model TipoProvidencia {
 }
 
 model Providencia {
-  id                Int      @id @default(autoincrement())
-  procesoId         Int      @map("proceso_id")
-  tipoProvidenciaId Int      @map("tipo_providencia_id")
-  fechaProvidencia  DateTime @map("fecha_providencia")
-  fechaNotificacion DateTime @map("fecha_notificacion")
+  id                Int         @id @default(autoincrement())
+  procesoId         Int         @map("proceso_id")
+  tipoProvidenciaId Int         @map("tipo_providencia_id")
+  fechaProvidencia  DateTime    @map("fecha_providencia")
+  fechaNotificacion DateTime?   @map("fecha_notificacion")
   descripcion       String?
   orden             OrdenProvidencia @default(OTRO)
-  createdAt         DateTime @default(now()) @map("created_at")
+  createdAt         DateTime    @default(now()) @map("created_at")
 
   proceso       Proceso          @relation(fields: [procesoId], references: [id])
   tipoProvidencia TipoProvidencia @relation(fields: [tipoProvidenciaId], references: [id])
   terminos      TerminoProceso[]
 
   @@map("providencias")
+}
+
+model ModeloOficio {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @unique
+  descripcion String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("modelos_oficio")
 }
 
 model TerminoProceso {

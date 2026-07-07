@@ -5,10 +5,12 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   IconButton,
 } from '@mui/material'
-import { Edit, ArrowBack, Add, CheckCircle, Delete } from '@mui/icons-material'
+import { Edit, ArrowBack, Add, CheckCircle, Delete, Description, Notifications } from '@mui/icons-material'
 import api from '../services/api'
 import type { Proceso } from '../types'
 import ProvidenciaDialog from '../components/ProvidenciaDialog'
+import GenerarOficioDialog from '../components/GenerarOficioDialog'
+import { useAuth } from '../context/AuthContext'
 
 const colorMap: Record<string, { label: string; color: string }> = {
   VERDE: { label: 'Al día', color: '#2e7d32' },
@@ -24,6 +26,8 @@ export default function ProcesoDetail() {
   const [proceso, setProceso] = useState<Proceso | null>(null)
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [oficioDialogOpen, setOficioDialogOpen] = useState(false)
+  const { user } = useAuth()
 
   const load = useCallback(() => {
     if (!id) return
@@ -58,6 +62,10 @@ export default function ProcesoDetail() {
         <Typography variant="h4" fontWeight="bold" flex={1}>
           {proceso.radicado}
         </Typography>
+        <Button variant="outlined" startIcon={<Description />}
+          onClick={() => setOficioDialogOpen(true)}>
+          Generar Oficio
+        </Button>
         <Button variant="outlined" startIcon={<Edit />}
           onClick={() => navigate(`/procesos/${id}/editar`)}>
           Editar
@@ -143,7 +151,13 @@ export default function ProcesoDetail() {
                     <TableRow key={pv.id}>
                       <TableCell><Typography fontWeight="medium">{pv.tipoProvidencia?.nombre}</Typography></TableCell>
                       <TableCell>{new Date(pv.fechaProvidencia).toLocaleDateString('es-CO')}</TableCell>
-                      <TableCell>{new Date(pv.fechaNotificacion).toLocaleDateString('es-CO')}</TableCell>
+                      <TableCell>
+                        {pv.fechaNotificacion ? (
+                          new Date(pv.fechaNotificacion).toLocaleDateString('es-CO')
+                        ) : (
+                          <Chip label="Pendiente" color="warning" size="small" />
+                        )}
+                      </TableCell>
                       <TableCell>{pv.orden}</TableCell>
                       <TableCell>
                         {termino ? (
@@ -167,6 +181,13 @@ export default function ProcesoDetail() {
                         ) : '-'}
                       </TableCell>
                       <TableCell align="right">
+                        {!pv.fechaNotificacion && user?.rol === 'NOTIFICADOR' ? (
+                          <IconButton size="small" color="success"
+                            onClick={async () => { await api.patch(`/providencias/${pv.id}/notificar`); load() }}
+                            title="Marcar como notificado">
+                            <Notifications />
+                          </IconButton>
+                        ) : null}
                         {termino?.estado === 'PENDIENTE' ? (
                           <IconButton size="small" color="success"
                             onClick={() => handleCumplir(termino.id)}
@@ -199,6 +220,13 @@ export default function ProcesoDetail() {
           procesoId={parseInt(id)}
           onClose={() => setDialogOpen(false)}
           onCreated={load}
+        />
+      )}
+      {id && (
+        <GenerarOficioDialog
+          open={oficioDialogOpen}
+          procesoId={parseInt(id)}
+          onClose={() => setOficioDialogOpen(false)}
         />
       )}
     </Box>

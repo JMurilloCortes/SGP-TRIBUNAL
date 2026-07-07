@@ -1,5 +1,4 @@
 import { prisma } from '../src/config/database'
-import { addBusinessDays, calcularColor } from '../src/services/termino.service'
 
 async function main() {
   await prisma.terminoProceso.deleteMany()
@@ -59,45 +58,28 @@ async function main() {
   }
 
   const providenciasData = [
-    { radicado: '27001-33-33-001-2023-00123-00', tipoId: tipoAutoPruebas, descripcion: 'Auto que decreta pruebas de oficio', diasTermino: 10, fechaNotificacion: new Date('2026-06-20') },
-    { radicado: '27001-33-33-002-2023-00456-00', tipoId: tipoAutoAdmisorio, descripcion: 'Auto admisorio de la demanda', diasTermino: 5, fechaNotificacion: new Date('2026-06-25') },
-    { radicado: '27001-33-33-003-2024-00189-00', tipoId: tipoAutoPruebas, descripcion: 'Fija fecha para audiencia de pruebas', diasTermino: 15, fechaNotificacion: new Date('2026-07-01') },
-    { radicado: '27001-33-33-004-2024-00321-00', tipoId: tipoAutoTraslado, descripcion: 'Corre traslado para contestar', diasTermino: 3, fechaNotificacion: new Date('2026-07-03') },
-    { radicado: '27001-33-33-006-2024-00234-00', tipoId: tipoAutoPruebas, descripcion: 'Auto que decreta pruebas solicitadas', diasTermino: 8, fechaNotificacion: new Date('2026-06-28') },
-    { radicado: '27001-33-33-007-2023-00567-00', tipoId: tipoSentencia, descripcion: 'Fija fecha para lectura de sentencia', diasTermino: 4, fechaNotificacion: new Date('2026-07-02') },
-    { radicado: '27001-33-33-008-2025-00111-00', tipoId: tipoAutoTraslado, descripcion: 'Traslado para alegar de conclusión', diasTermino: 2, fechaNotificacion: new Date('2026-07-04') },
-    { radicado: '27001-33-33-009-2024-00987-00', tipoId: tipoAutoAdmisorio, descripcion: 'Admite demanda y ordena notificar', diasTermino: 5, fechaNotificacion: new Date('2026-06-15') },
+    { radicado: '27001-33-33-001-2023-00123-00', tipoId: tipoAutoPruebas, descripcion: 'Auto que decreta pruebas de oficio', diasTermino: 10 },
+    { radicado: '27001-33-33-002-2023-00456-00', tipoId: tipoAutoAdmisorio, descripcion: 'Auto admisorio de la demanda', diasTermino: 5 },
+    { radicado: '27001-33-33-003-2024-00189-00', tipoId: tipoAutoPruebas, descripcion: 'Fija fecha para audiencia de pruebas', diasTermino: 15 },
+    { radicado: '27001-33-33-004-2024-00321-00', tipoId: tipoAutoTraslado, descripcion: 'Corre traslado para contestar', diasTermino: 3 },
+    { radicado: '27001-33-33-006-2024-00234-00', tipoId: tipoAutoPruebas, descripcion: 'Auto que decreta pruebas solicitadas', diasTermino: 8 },
+    { radicado: '27001-33-33-007-2023-00567-00', tipoId: tipoSentencia, descripcion: 'Fija fecha para lectura de sentencia', diasTermino: 4 },
+    { radicado: '27001-33-33-008-2025-00111-00', tipoId: tipoAutoTraslado, descripcion: 'Traslado para alegar de conclusión', diasTermino: 2 },
+    { radicado: '27001-33-33-009-2024-00987-00', tipoId: tipoAutoAdmisorio, descripcion: 'Admite demanda y ordena notificar', diasTermino: 5 },
   ]
 
   for (const prv of providenciasData) {
     const proc = getProc(prv.radicado)
-    const fechaProv = prv.fechaNotificacion
-    const fechaVen = addBusinessDays(fechaProv, prv.diasTermino)
-    const p = await prisma.providencia.create({
+    await prisma.providencia.create({
       data: {
         procesoId: proc.id,
         tipoProvidenciaId: prv.tipoId,
-        fechaProvidencia: fechaProv,
-        fechaNotificacion: fechaProv,
+        fechaProvidencia: new Date('2026-07-05'),
+        fechaNotificacion: null,
         descripcion: prv.descripcion,
       },
     })
-    await prisma.terminoProceso.create({
-      data: {
-        providenciaId: p.id,
-        procesoId: proc.id,
-        diasTotales: prv.diasTermino,
-        fechaInicio: fechaProv,
-        fechaVencimiento: fechaVen,
-      },
-    })
-    // Asignar color al proceso según el término más próximo
-    const color = calcularColor(fechaVen)
-    await prisma.proceso.update({
-      where: { id: proc.id },
-      data: { colorEstado: color },
-    })
-    console.log(`  ✓ Providencia: ${prv.descripcion} (${prv.diasTermino}d → ${color})`)
+    console.log(`  ✓ Providencia: ${prv.descripcion} (pendiente de notificar)`)
   }
 
   // Archivados → GRIS y no vigentes

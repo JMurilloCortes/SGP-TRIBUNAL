@@ -51,7 +51,7 @@ export default function Dashboard() {
     <Box>
       <Typography variant="h4" gutterBottom fontWeight="bold">Dashboard</Typography>
       <Typography variant="body1" color="text.secondary" mb={3}>
-        Bienvenido, {user?.nombre} | {user?.rol === 'ADMIN' ? 'Administrador' : 'Escribiente'}
+        Bienvenido, {user?.nombre} | {user?.rol === 'ADMIN' ? 'Administrador' : user?.rol === 'NOTIFICADOR' ? 'Notificador' : 'Escribiente'}
         {stats && <span> | Total procesos: {stats.total}</span>}
       </Typography>
 

@@ -16,7 +16,7 @@ export default function UserForm() {
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [rol, setRol] = useState<'ADMIN' | 'ESCRIBIENTE'>('ESCRIBIENTE')
+  const [rol, setRol] = useState<'ADMIN' | 'ESCRIBIENTE' | 'NOTIFICADOR'>('ESCRIBIENTE')
   const [despachoIds, setDespachoIds] = useState<number[]>([])
   const [despachos, setDespachos] = useState<Despacho[]>([])
   const [error, setError] = useState('')

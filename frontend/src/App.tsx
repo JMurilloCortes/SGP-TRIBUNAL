@@ -8,6 +8,7 @@ import ProcesoList from './pages/ProcesoList'
 import ProcesoForm from './pages/ProcesoForm'
 import ProcesoDetail from './pages/ProcesoDetail'
 import NotificacionesPage from './pages/NotificacionesPage'
+import PendientesNotificacion from './pages/PendientesNotificacion'
 import UsersList from './pages/UsersList'
 import UserForm from './pages/UserForm'
 import UserDetail from './pages/UserDetail'
@@ -46,6 +47,7 @@ export default function App() {
         <Route path="/procesos/:id" element={<ProcesoDetail />} />
         <Route path="/procesos/:id/editar" element={<ProcesoForm />} />
         <Route path="/notificaciones" element={<NotificacionesPage />} />
+        <Route path="/notificaciones/pendientes" element={<PendientesNotificacion />} />
         <Route path="/usuarios" element={<UsersList />} />
         <Route path="/usuarios/nuevo" element={<UserForm />} />
         <Route path="/usuarios/:id" element={<UserDetail />} />
