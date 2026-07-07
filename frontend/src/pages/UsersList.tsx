@@ -64,7 +64,7 @@ export default function UsersList() {
                 </TableCell>
                 <TableCell>
                   <Box display="flex" alignItems="center" gap={1}>
-                    <Switch checked={u.activo} disabled={u.rol === 'ADMIN' || u.rol === 'NOTIFICADOR'}
+                    <Switch checked={u.activo} disabled={u.rol === 'ADMIN'}
                       onChange={() => handleToggleActivo(u.id)} size="small" />
                     <Chip label={u.activo ? 'Activo' : 'Inactivo'}
                       color={u.activo ? 'success' : 'error'} size="small" />
