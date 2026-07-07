@@ -144,14 +144,19 @@ async function main() {
     })
   }
 
-  // === CONSECUTIVOS (0001–3500) ===
+  // === CONSECUTIVOS (4 tipos x 0001–3500) ===
+  const tipCons = ['OFICIO', 'CIRCULAR', 'CITACION', 'RESOLUCION']
   const existing = await prisma.consecutivo.count()
-  if (existing === 0) {
-    const data = Array.from({ length: 3500 }, (_, i) => ({
-      numero: String(i + 1).padStart(4, '0'),
-    }))
-    await prisma.consecutivo.createMany({ data })
-    console.log(`- ${data.length} consecutivos (0001–3500)`)
+  if (existing < 14000) {
+    await prisma.consecutivo.deleteMany()
+    for (const tipo of tipCons) {
+      const data = Array.from({ length: 3500 }, (_, i) => ({
+        numero: String(i + 1).padStart(4, '0'),
+        tipo: tipo as any,
+      }))
+      await prisma.consecutivo.createMany({ data })
+    }
+    console.log(`- 14.000 consecutivos (${tipCons.join(', ')} · 0001–3500 c/u)`)
   } else {
     console.log(`- ${existing} consecutivos (ya existían)`)
   }

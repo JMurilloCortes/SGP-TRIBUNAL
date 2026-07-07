@@ -225,6 +225,13 @@ model Notificacion {
   @@map("notificaciones")
 }
 
+enum TipoConsecutivo {
+  OFICIO
+  CIRCULAR
+  CITACION
+  RESOLUCION
+}
+
 enum EstadoConsecutivo {
   DISPONIBLE
   OCUPADO
@@ -232,13 +239,15 @@ enum EstadoConsecutivo {
 
 model Consecutivo {
   id        Int               @id @default(autoincrement())
-  numero    String            @unique
+  numero    String
+  tipo      TipoConsecutivo   @default(OFICIO)
   estado    EstadoConsecutivo @default(DISPONIBLE)
   tomadoPor Int?              @map("tomado_por")
   tomadoUser User?            @relation(fields: [tomadoPor], references: [id])
   createdAt DateTime          @default(now()) @map("created_at")
   updatedAt DateTime          @updatedAt @map("updated_at")
 
+  @@unique([numero, tipo])
   @@map("consecutivos")
 }
 

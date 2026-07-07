@@ -2,8 +2,13 @@ import { Request, Response } from 'express'
 import { prisma } from '../config/database'
 import { getIO } from '../config/socket'
 
+const TIPOS = ['OFICIO', 'CIRCULAR', 'CITACION', 'RESOLUCION'] as const
+
 export async function listar(req: Request, res: Response) {
+  const tipo = (String(req.query.tipo || 'OFICIO').toUpperCase())
+  const tipoValido = TIPOS.includes(tipo as any) ? tipo : 'OFICIO'
   const consecutivos = await prisma.consecutivo.findMany({
+    where: { tipo: tipoValido as any },
     orderBy: { id: 'asc' },
     include: { tomadoUser: { select: { nombre: true } } },
   })
