@@ -15,7 +15,7 @@ const colorMap: Record<string, { label: string; color: string }> = {
   AMARILLO: { label: 'Próximo a vencer', color: '#ed6c02' },
   NARANJA: { label: 'Por vencer', color: '#e65100' },
   ROJO: { label: 'Vencido', color: '#d32f2f' },
-  GRIS: { label: 'Terminado', color: '#757575' },
+  GRIS: { label: 'Archivado', color: '#757575' },
 }
 
 export default function ProcesoDetail() {

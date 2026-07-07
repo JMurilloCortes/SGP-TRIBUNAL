@@ -18,12 +18,12 @@ interface Stats {
   proximos: Proceso[]
 }
 
-const colorMap: Record<string, string> = {
-  VERDE: '#2e7d32',
-  AMARILLO: '#ed6c02',
-  NARANJA: '#e65100',
-  ROJO: '#d32f2f',
-  GRIS: '#757575',
+const colorMap: Record<string, { label: string; color: string }> = {
+  VERDE: { label: 'Al día', color: '#2e7d32' },
+  AMARILLO: { label: 'Próximo a vencer', color: '#ed6c02' },
+  NARANJA: { label: 'Por vencer', color: '#e65100' },
+  ROJO: { label: 'Vencido', color: '#d32f2f' },
+  GRIS: { label: 'Archivado', color: '#757575' },
 }
 
 export default function Dashboard() {
@@ -98,8 +98,8 @@ export default function Dashboard() {
                     </TableCell>
                     <TableCell>
                       <Chip
-                        label={p.colorEstado}
-                        sx={{ bgcolor: colorMap[p.colorEstado], color: '#fff' }}
+                        label={colorMap[p.colorEstado]?.label || p.colorEstado}
+                        sx={{ bgcolor: colorMap[p.colorEstado]?.color || '#757575', color: '#fff' }}
                         size="small"
                       />
                     </TableCell>
