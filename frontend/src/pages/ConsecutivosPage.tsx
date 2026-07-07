@@ -14,6 +14,7 @@ interface Consecutivo {
   estado: 'DISPONIBLE' | 'OCUPADO'
   tomadoPor: number | null
   tomadoUser: { nombre: string } | null
+  updatedAt: string
 }
 
 const TIPOS: { key: TipoCons; label: string }[] = [
@@ -170,7 +171,7 @@ export default function ConsecutivosPage() {
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  height: 48,
+                  height: 52,
                   fontSize: '0.75rem',
                   fontWeight: 700,
                   borderRadius: 4,
@@ -186,9 +187,14 @@ export default function ConsecutivosPage() {
               >
                 <span>{c.numero}</span>
                 {c.tomadoUser && (
-                  <span style={{ fontSize: '0.55rem', fontWeight: 400, opacity: 0.9 }}>
-                    {primerNombre(c.tomadoUser.nombre)}
-                  </span>
+                  <>
+                    <span style={{ fontSize: '0.55rem', fontWeight: 400, opacity: 0.9 }}>
+                      {primerNombre(c.tomadoUser.nombre)}
+                    </span>
+                    <span style={{ fontSize: '0.45rem', fontWeight: 300, opacity: 0.65 }}>
+                      {new Date(c.updatedAt).toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit' })}
+                    </span>
+                  </>
                 )}
                 {bloqueado && (
                   <span style={{ fontSize: '0.45rem', fontWeight: 400, opacity: 0.7 }}>bloq</span>
