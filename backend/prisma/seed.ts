@@ -163,31 +163,50 @@ async function main() {
     await prisma.tipoProvidencia.upsert({
       where: { nombre: tipo.nombre },
       update: {},
-      create: tipo,
+      create: tipo as any,
     })
   }
 
   console.log('Seed ejecutado correctamente')
   console.log(`- ${despachos.length} despachos`)
   console.log(`- ${juzgados.length} juzgados administrativos`)
-  // === 1 NOTIFICADOR ===
-  const notHash = await bcrypt.hash('notificador1', 10)
-  await prisma.user.upsert({
+  // === 2 NOTIFICADORES (notifican todos los despachos) ===
+  const not1Hash = await bcrypt.hash('notificador1', 10)
+  const not1 = await prisma.user.upsert({
     where: { email: 'juan.notificador@tribunalchoco.gov.co' },
     update: {},
     create: {
       nombre: 'Juan Martínez',
       email: 'juan.notificador@tribunalchoco.gov.co',
-      passwordHash: notHash,
+      passwordHash: not1Hash,
       rol: 'NOTIFICADOR' as any,
     },
   })
+  for (const d of despachos) {
+    await prisma.userDespacho.upsert({ where: { userId_despachoId: { userId: not1.id, despachoId: d.id } }, update: {}, create: { userId: not1.id, despachoId: d.id } })
+  }
 
-  console.log(`- 1 admin + 3 escribientes + 1 notificador`)
-  console.log('  Andrés García → D001, D002')
-  console.log('  María López   → D003, D004')
-  console.log('  Carlos Pérez  → D005')
-  console.log('  Juan Martínez → Notificador (sin despacho)')
+  const not2Hash = await bcrypt.hash('notificador2', 10)
+  const not2 = await prisma.user.upsert({
+    where: { email: 'maria.rodriguez@tribunalchoco.gov.co' },
+    update: {},
+    create: {
+      nombre: 'María Rodríguez',
+      email: 'maria.rodriguez@tribunalchoco.gov.co',
+      passwordHash: not2Hash,
+      rol: 'NOTIFICADOR' as any,
+    },
+  })
+  for (const d of despachos) {
+    await prisma.userDespacho.upsert({ where: { userId_despachoId: { userId: not2.id, despachoId: d.id } }, update: {}, create: { userId: not2.id, despachoId: d.id } })
+  }
+
+  console.log(`- 1 admin + 3 escribientes + 2 notificadores`)
+  console.log('  Andrés García   → D001, D002')
+  console.log('  María López     → D003, D004')
+  console.log('  Carlos Pérez    → D005')
+  console.log('  Juan Martínez   → Notificador (todos los despachos)')
+  console.log('  María Rodríguez → Notificador (todos los despachos)')
 }
 
 main()
