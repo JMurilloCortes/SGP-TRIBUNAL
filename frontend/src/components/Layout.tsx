@@ -3,13 +3,14 @@ import { Outlet, useNavigate } from 'react-router-dom'
 import {
   AppBar, Box, CssBaseline, Drawer, IconButton, List, ListItem,
   ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography,
-  Badge, Avatar, Menu, MenuItem, Divider,
+  Avatar, Menu, MenuItem, Divider,
 } from '@mui/material'
 import {
-  Menu as MenuIcon, Dashboard, Gavel, Logout, Notifications as NotificationsIcon,
-  Person, AddCircle,
+  Menu as MenuIcon, Dashboard, Gavel, Logout,
+  Person, AddCircle, Notifications as NotificationsIcon,
 } from '@mui/icons-material'
 import { useAuth } from '../context/AuthContext'
+import NotificationBell from './NotificationPanel'
 
 const drawerWidth = 260
 
@@ -23,6 +24,7 @@ export default function Layout() {
     { text: 'Dashboard', icon: <Dashboard />, path: '/' },
     { text: 'Registrar Proceso', icon: <AddCircle />, path: '/procesos/nuevo' },
     { text: 'Procesos', icon: <Gavel />, path: '/procesos' },
+    { text: 'Notificaciones', icon: <NotificationsIcon />, path: '/notificaciones' },
   ]
 
   const drawer = (
@@ -57,11 +59,7 @@ export default function Layout() {
           <Typography variant="h6" noWrap sx={{ flexGrow: 1 }}>
             Sistema de Gestión de Procesos
           </Typography>
-          <IconButton color="inherit" onClick={() => navigate('/notificaciones')}>
-            <Badge badgeContent={0} color="error">
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
+          <NotificationBell />
           <IconButton color="inherit" onClick={(e) => setAnchorEl(e.currentTarget)} sx={{ ml: 1 }}>
             <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main' }}>
               {user?.nombre?.charAt(0) || 'U'}

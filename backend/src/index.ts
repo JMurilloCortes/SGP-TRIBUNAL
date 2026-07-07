@@ -7,7 +7,9 @@ import catalogoRoutes from './routes/catalogo.routes'
 import procesoRoutes from './routes/proceso.routes'
 import providenciaRoutes from './routes/providencia.routes'
 import dashboardRoutes from './routes/dashboard.routes'
+import notificacionRoutes from './routes/notificacion.routes'
 import { verificarTerminosVencidos } from './controllers/providencia.controller'
+import { generarAlertasTerminos } from './controllers/notificacion.controller'
 
 const app = express()
 
@@ -19,14 +21,17 @@ app.use('/api/catalogos', catalogoRoutes)
 app.use('/api/procesos', procesoRoutes)
 app.use('/api', providenciaRoutes)
 app.use('/api/dashboard', dashboardRoutes)
+app.use('/api/notificaciones', notificacionRoutes)
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
 
-// Cron job: verificar términos vencidos cada hora
-cron.schedule('0 * * * *', () => {
-  verificarTerminosVencidos()
+// Cron job: verificar términos vencidos y generar alertas cada hora
+cron.schedule('0 * * * *', async () => {
+  const vencidos = await verificarTerminosVencidos()
+  const alertas = await generarAlertasTerminos()
+  console.log(`[Cron] Términos vencidos: ${vencidos}, Alertas generadas: ${JSON.stringify(alertas)}`)
 })
 
 app.listen(env.PORT, () => {

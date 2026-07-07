@@ -4,6 +4,7 @@ import { AuthRequest } from '../types'
 import { z } from 'zod'
 import { EstadoTermino, ColorEstado } from '@prisma/client'
 import { addBusinessDays, calcularColor } from '../services/termino.service'
+import { crearNotificacion } from './notificacion.controller'
 
 const createProvidenciaSchema = z.object({
   tipoProvidenciaId: z.number().int().positive(),
@@ -80,6 +81,19 @@ export async function create(req: AuthRequest, res: Response) {
       descripcion: `Se registró providencia: ${tipo.nombre}`,
     },
   })
+
+  // Create notification for users in the despacho
+  const users = await prisma.user.findMany({
+    where: { despachoId: proceso.despachoActualId, activo: true },
+  })
+  for (const user of users) {
+    await crearNotificacion(
+      procesoId,
+      'TAREA',
+      `Nueva providencia: ${tipo.nombre} en proceso ${proceso.radicado}. Término: ${tipo.diasTermino} días hábiles. Vence: ${fechaVencimiento.toLocaleDateString('es-CO')}`,
+      user.id,
+    )
+  }
 
   return res.status(201).json(providencia)
 }
