@@ -6,6 +6,6 @@ const router = Router()
 router.use(authenticate)
 
 router.get('/modelos', listarModelos)
-router.post('/procesos/:id/oficios/generar', generarOficio)
+router.post('/:id/generar', generarOficio)
 
 export default router

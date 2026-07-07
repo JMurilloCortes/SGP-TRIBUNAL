@@ -70,7 +70,7 @@ export default function GenerarOficioDialog({ open, procesoId, juzgadoOrigenId, 
     }
     setLoading(true)
     try {
-      const res = await api.post(`/procesos/${procesoId}/oficios/generar`, {
+      const res = await api.post(`/oficios/${procesoId}/generar`, {
         modeloId: parseInt(modeloId),
         destinatario, cargo, entidad, direccion, asunto,
       }, { responseType: 'blob' })
