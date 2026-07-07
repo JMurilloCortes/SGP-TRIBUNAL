@@ -154,6 +154,11 @@ export async function update(req: AuthRequest, res: Response) {
   const proceso = await prisma.proceso.findUnique({ where: { id } })
   if (!proceso) return res.status(404).json({ message: 'Proceso no encontrado' })
 
+  if (data.etapaActualId !== undefined && data.etapaActualId !== proceso.etapaActualId) {
+    const error = await validarTerminosPendientes(id)
+    if (error) return res.status(400).json({ message: error })
+  }
+
   const updated = await prisma.proceso.update({
     where: { id },
     data: {
@@ -181,6 +186,14 @@ export async function update(req: AuthRequest, res: Response) {
   return res.json(updated)
 }
 
+async function validarTerminosPendientes(procesoId: number): Promise<string | null> {
+  const pendientes = await prisma.terminoProceso.findFirst({
+    where: { procesoId, estado: { in: ['PENDIENTE', 'VENCIDO'] } },
+  })
+  if (pendientes) return 'No se puede cambiar la etapa mientras haya términos pendientes o vencidos sin cumplir'
+  return null
+}
+
 export async function cambiarEtapa(req: AuthRequest, res: Response) {
   const id = parseInt(req.params.id as string)
   const { etapaActualId, descripcion } = z.object({
@@ -190,6 +203,9 @@ export async function cambiarEtapa(req: AuthRequest, res: Response) {
 
   const proceso = await prisma.proceso.findUnique({ where: { id } })
   if (!proceso) return res.status(404).json({ message: 'Proceso no encontrado' })
+
+  const error = await validarTerminosPendientes(id)
+  if (error) return res.status(400).json({ message: error })
 
   const updated = await prisma.proceso.update({
     where: { id },
