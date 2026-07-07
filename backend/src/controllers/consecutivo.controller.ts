@@ -5,6 +5,7 @@ import { getIO } from '../config/socket'
 export async function listar(req: Request, res: Response) {
   const consecutivos = await prisma.consecutivo.findMany({
     orderBy: { id: 'asc' },
+    include: { tomadoUser: { select: { nombre: true } } },
   })
   res.json(consecutivos)
 }
@@ -23,6 +24,7 @@ export async function ocupar(req: Request, res: Response) {
       return tx.consecutivo.update({
         where: { id: Number(id) },
         data: { estado: 'OCUPADO', tomadoPor: userId },
+        include: { tomadoUser: { select: { nombre: true } } },
       })
     })
 
@@ -45,6 +47,7 @@ export async function liberar(req: Request, res: Response) {
       return tx.consecutivo.update({
         where: { id: Number(id) },
         data: { estado: 'DISPONIBLE', tomadoPor: null },
+        include: { tomadoUser: { select: { nombre: true } } },
       })
     })
 

@@ -64,6 +64,7 @@ model User {
   despachos      UserDespacho[]
   actuaciones    Actuacion[]
   notificaciones Notificacion[]
+  consecutivos   Consecutivo[]
 
   @@map("users")
 }
@@ -234,6 +235,7 @@ model Consecutivo {
   numero    String            @unique
   estado    EstadoConsecutivo @default(DISPONIBLE)
   tomadoPor Int?              @map("tomado_por")
+  tomadoUser User?            @relation(fields: [tomadoPor], references: [id])
   createdAt DateTime          @default(now()) @map("created_at")
   updatedAt DateTime          @updatedAt @map("updated_at")
 

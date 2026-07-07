@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import {
-  Box, Typography, ToggleButtonGroup, ToggleButton, CircularProgress, Tooltip,
-} from '@mui/material'
+import { Box, Typography, ToggleButtonGroup, ToggleButton, CircularProgress } from '@mui/material'
 import api from '../services/api'
 import { connectSocket, disconnectSocket } from '../services/socket'
 import { useAuth } from '../context/AuthContext'
@@ -11,6 +9,7 @@ interface Consecutivo {
   numero: string
   estado: 'DISPONIBLE' | 'OCUPADO'
   tomadoPor: number | null
+  tomadoUser: { nombre: string } | null
 }
 
 type Filtro = 'TODOS' | 'DISPONIBLE' | 'OCUPADO'
@@ -49,10 +48,10 @@ export default function ConsecutivosPage() {
     try {
       if (c.estado === 'DISPONIBLE') {
         const r = await api.patch(`/consecutivos/${c.id}/ocupar`)
-        setConsecutivos(prev => prev.map(p => p.id === c.id ? r.data : p))
+        if (r.data?.id) setConsecutivos(prev => prev.map(p => p.id === c.id ? r.data : p))
       } else if (user?.rol === 'ADMIN') {
         const r = await api.patch(`/consecutivos/${c.id}/liberar`)
-        setConsecutivos(prev => prev.map(p => p.id === c.id ? r.data : p))
+        if (r.data?.id) setConsecutivos(prev => prev.map(p => p.id === c.id ? r.data : p))
       }
     } catch { }
     setTomando(null)
@@ -66,48 +65,56 @@ export default function ConsecutivosPage() {
 
   if (loading) return <Box display="flex" justifyContent="center" mt={4}><CircularProgress /></Box>
 
+  const primerNombre = (n: string) => n.split(' ')[0]
+
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h4" fontWeight="bold">Consecutivos</Typography>
-        <ToggleButtonGroup
-          value={filtro} exclusive size="small"
-          onChange={(_, v) => v && setFiltro(v)}
-        >
-          <ToggleButton value="TODOS">Todos</ToggleButton>
-          <ToggleButton value="DISPONIBLE">Disponibles</ToggleButton>
-          <ToggleButton value="OCUPADO">Ocupados</ToggleButton>
-        </ToggleButtonGroup>
+        <Box display="flex" gap={1} alignItems="center">
+          <Typography variant="body2" color="text.secondary">
+            {consecutivos.filter(c => c.estado === 'DISPONIBLE').length} disponibles
+          </Typography>
+          <ToggleButtonGroup
+            value={filtro} exclusive size="small"
+            onChange={(_, v) => v && setFiltro(v)}
+          >
+            <ToggleButton value="TODOS">Todos</ToggleButton>
+            <ToggleButton value="DISPONIBLE">Disponibles</ToggleButton>
+            <ToggleButton value="OCUPADO">Ocupados</ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
       </Box>
 
       <Box sx={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(44px, 1fr))',
-        gap: 0.5,
+        gap: '3px',
       }}>
         {filtrados.map(c => (
-          <Tooltip key={c.id} title={`#${c.numero} — ${c.estado === 'DISPONIBLE' ? 'Disponible' : 'Ocupado'}`}>
-            <Box
-              onClick={() => handleClick(c)}
-              sx={{
-                aspectRatio: '1',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '0.7rem',
-                fontWeight: 'bold',
-                borderRadius: 0.5,
-                cursor: tomando === c.id ? 'wait' : 'pointer',
-                bgcolor: c.estado === 'DISPONIBLE' ? 'success.main' : 'error.main',
-                color: '#fff',
-                transition: 'background-color 0.15s',
-                '&:hover': { opacity: 0.8 },
-                userSelect: 'none',
-              }}
-            >
-              {c.numero}
-            </Box>
-          </Tooltip>
+          <div
+            key={c.id}
+            onClick={() => handleClick(c)}
+            title={`#${c.numero}${c.tomadoUser ? ' - ' + primerNombre(c.tomadoUser.nombre) : ''}`}
+            style={{
+              aspectRatio: '1',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              borderRadius: 4,
+              cursor: tomando === c.id ? 'wait' : 'pointer',
+              backgroundColor: c.estado === 'DISPONIBLE' ? '#2e7d32' : '#d32f2f',
+              color: '#fff',
+              transition: 'background-color 0.15s',
+              userSelect: 'none',
+            }}
+            onMouseEnter={e => { (e.target as HTMLElement).style.opacity = '0.8' }}
+            onMouseLeave={e => { (e.target as HTMLElement).style.opacity = '1' }}
+          >
+            {c.numero}
+          </div>
         ))}
       </Box>
     </Box>
