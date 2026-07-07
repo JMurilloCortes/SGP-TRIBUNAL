@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { prisma } from '../config/database'
 import { getIO } from '../config/socket'
+import { AuthRequest } from '../types'
 
 const TIPOS = ['OFICIO', 'CIRCULAR', 'CITACION', 'RESOLUCION'] as const
 
@@ -71,4 +72,15 @@ export async function liberar(req: Request, res: Response) {
   } catch (e: any) {
     res.status(400).json({ error: e.message })
   }
+}
+
+export async function resetAll(req: AuthRequest, res: Response) {
+  if (req.user?.rol !== 'ADMIN') return res.status(403).json({ error: 'Solo admin' })
+
+  await prisma.consecutivo.updateMany({
+    data: { estado: 'DISPONIBLE', tomadoPor: null },
+  })
+
+  getIO().emit('consecutivo:reset')
+  res.json({ ok: true })
 }

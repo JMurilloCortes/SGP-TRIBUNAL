@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Box, Typography, Tabs, Tab, ToggleButtonGroup, ToggleButton, CircularProgress } from '@mui/material'
+import { Box, Typography, Tabs, Tab, ToggleButtonGroup, ToggleButton, CircularProgress, Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material'
+import { RestartAlt } from '@mui/icons-material'
 import api from '../services/api'
 import { connectSocket, disconnectSocket } from '../services/socket'
 import { useAuth } from '../context/AuthContext'
@@ -32,6 +33,7 @@ export default function ConsecutivosPage() {
   const [tomando, setTomando] = useState<number | null>(null)
   const { user, token } = useAuth()
   const snapshots = useRef<Map<number, Consecutivo>>(new Map())
+  const [resetOpen, setResetOpen] = useState(false)
 
   const load = useCallback(async (tipo: TipoCons) => {
     setLoading(true)
@@ -55,8 +57,12 @@ export default function ConsecutivosPage() {
         return copy
       })
     })
+    socket.on('consecutivo:reset', () => {
+      load(tipoActivo)
+    })
     return () => {
       socket.off('consecutivo:update')
+      socket.off('consecutivo:reset')
       disconnectSocket()
     }
   }, [token, tipoActivo])
@@ -137,6 +143,12 @@ export default function ConsecutivosPage() {
           <Typography variant="body2" color="text.secondary">
             {consecutivos.filter(c => c.estado === 'DISPONIBLE').length} disponibles
           </Typography>
+          {user?.rol === 'ADMIN' && (
+            <Button size="small" color="error" variant="outlined"
+              startIcon={<RestartAlt />} onClick={() => setResetOpen(true)}>
+              Resetear
+            </Button>
+          )}
           <ToggleButtonGroup value={filtro} exclusive size="small"
             onChange={(_, v) => v && setFiltro(v)}>
             <ToggleButton value="TODOS">Todos</ToggleButton>
@@ -204,6 +216,25 @@ export default function ConsecutivosPage() {
           })}
         </Box>
       )}
+
+      <Dialog open={resetOpen} onClose={() => setResetOpen(false)}>
+        <DialogTitle>Resetear todos los consecutivos</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Esto marcará todos los números como disponibles y limpiará quién los tomó. Esta acción no se puede deshacer.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setResetOpen(false)}>Cancelar</Button>
+          <Button color="error" variant="contained" onClick={async () => {
+            await api.post('/consecutivos/reset')
+            setResetOpen(false)
+            load(tipoActivo)
+          }}>
+            Resetear
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }
