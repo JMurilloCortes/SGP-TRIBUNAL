@@ -11,15 +11,24 @@ interface ModeloOficio {
   descripcion: string
 }
 
+interface Juzgado {
+  id: number
+  nombre: string
+  codigo: string
+}
+
 interface Props {
   open: boolean
   procesoId: number
+  juzgadoOrigenId?: number | null
   onClose: () => void
 }
 
-export default function GenerarOficioDialog({ open, procesoId, onClose }: Props) {
+export default function GenerarOficioDialog({ open, procesoId, juzgadoOrigenId, onClose }: Props) {
   const [modelos, setModelos] = useState<ModeloOficio[]>([])
+  const [juzgados, setJuzgados] = useState<Juzgado[]>([])
   const [modeloId, setModeloId] = useState('')
+  const [juzgadoSel, setJuzgadoSel] = useState('')
   const [destinatario, setDestinatario] = useState('')
   const [cargo, setCargo] = useState('')
   const [entidad, setEntidad] = useState('')
@@ -28,9 +37,30 @@ export default function GenerarOficioDialog({ open, procesoId, onClose }: Props)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const esDevolver = modeloId === '1'
+
   useEffect(() => {
     api.get('/oficios/modelos').then(r => setModelos(r.data))
+    api.get('/catalogos/juzgados').then(r => setJuzgados(r.data))
   }, [])
+
+  useEffect(() => {
+    if (!esDevolver || !juzgadoSel) return
+    const j = juzgados.find(j => String(j.id) === juzgadoSel)
+    if (!j) return
+    setDestinatario(`JUEZ ${j.nombre.toUpperCase()}`)
+    setCargo('Juez Administrativo')
+    setEntidad(j.nombre)
+    setDireccion('Quibdó, Chocó')
+  }, [juzgadoSel, esDevolver, juzgados])
+
+  useEffect(() => {
+    if (!esDevolver) {
+      setJuzgadoSel('')
+    } else if (juzgadoOrigenId) {
+      setJuzgadoSel(String(juzgadoOrigenId))
+    }
+  }, [esDevolver, juzgadoOrigenId])
 
   async function handleGenerar() {
     setError('')
@@ -71,6 +101,16 @@ export default function GenerarOficioDialog({ open, procesoId, onClose }: Props)
             {modelos.map(m => <MenuItem key={m.id} value={m.id}>{m.nombre}</MenuItem>)}
           </Select>
         </FormControl>
+
+        {esDevolver && (
+          <FormControl fullWidth sx={{ mt: 2 }}>
+            <InputLabel>Juzgado destino</InputLabel>
+            <Select value={juzgadoSel} label="Juzgado destino" onChange={e => setJuzgadoSel(e.target.value)}>
+              {juzgados.map(j => <MenuItem key={j.id} value={j.id}>{j.nombre} ({j.codigo})</MenuItem>)}
+            </Select>
+          </FormControl>
+        )}
+
         <TextField fullWidth label="Destinatario" sx={{ mt: 2 }} value={destinatario} onChange={e => setDestinatario(e.target.value)} />
         <TextField fullWidth label="Cargo" sx={{ mt: 2 }} value={cargo} onChange={e => setCargo(e.target.value)} />
         <TextField fullWidth label="Entidad" sx={{ mt: 2 }} value={entidad} onChange={e => setEntidad(e.target.value)} />

@@ -226,6 +226,7 @@ export default function ProcesoDetail() {
         <GenerarOficioDialog
           open={oficioDialogOpen}
           procesoId={parseInt(id)}
+          juzgadoOrigenId={proceso.juzgadoOrigen?.id}
           onClose={() => setOficioDialogOpen(false)}
         />
       )}
