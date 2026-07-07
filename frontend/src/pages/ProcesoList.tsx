@@ -5,7 +5,7 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Paper, TablePagination, Chip, IconButton, Button, Grid,
 } from '@mui/material'
-import { Add, Visibility, Edit } from '@mui/icons-material'
+import { Add, Visibility, Edit, FilterList, Search } from '@mui/icons-material'
 import api from '../services/api'
 import type { Proceso, Despacho, Etapa } from '../types'
 
@@ -60,22 +60,40 @@ export default function ProcesoList() {
 
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h4" fontWeight="bold">Procesos</Typography>
-        <Button variant="contained" startIcon={<Add />} onClick={() => navigate('/procesos/nuevo')}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Box>
+          <Typography variant="h4" fontWeight={800} color="primary">Procesos</Typography>
+          <Typography variant="body2" color="text.secondary" mt={0.5}>
+            Gestión y seguimiento de procesos judiciales
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          onClick={() => navigate('/procesos/nuevo')}
+          sx={{ borderRadius: 2, px: 3, py: 1.2 }}
+        >
           Nuevo Proceso
         </Button>
       </Box>
 
-      <Paper sx={{ p: 2, mb: 2 }}>
+      <Paper sx={{ p: 2.5, mb: 3, borderRadius: 3 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} md={4}>
             <TextField
-              fullWidth size="small" label="Buscar (radicado, demandante, demandado)"
-              value={search} onChange={e => { setSearch(e.target.value); setPage(0) }}
+              fullWidth
+              size="small"
+              placeholder="Buscar radicado, demandante o demandado..."
+              value={search}
+              onChange={e => { setSearch(e.target.value); setPage(0) }}
+              slotProps={{
+                input: {
+                  startAdornment: <Search sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />,
+                },
+              }}
             />
           </Grid>
-          <Grid item xs={6} md={3}>
+          <Grid item xs={6} md={2.5}>
             <FormControl fullWidth size="small">
               <InputLabel>Etapa</InputLabel>
               <Select value={filtroEtapa} label="Etapa" onChange={e => { setFiltroEtapa(e.target.value); setPage(0) }}>
@@ -93,7 +111,7 @@ export default function ProcesoList() {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={6} md={2}>
+          <Grid item xs={6} md={1.5}>
             <FormControl fullWidth size="small">
               <InputLabel>Estado</InputLabel>
               <Select value={filtroColor} label="Estado" onChange={e => { setFiltroColor(e.target.value); setPage(0) }}>
@@ -109,66 +127,96 @@ export default function ProcesoList() {
               </Select>
             </FormControl>
           </Grid>
+          <Grid item xs={6} md={2}>
+            <Button variant="outlined" startIcon={<FilterList />} onClick={() => { setFiltroEtapa(''); setFiltroDespacho(''); setFiltroColor(''); setSearch('') }} fullWidth>
+              Limpiar
+            </Button>
+          </Grid>
         </Grid>
       </Paper>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Radicado</TableCell>
-              <TableCell>Demandante</TableCell>
-              <TableCell>Demandado</TableCell>
-              <TableCell>Clase</TableCell>
-              <TableCell>Instancia</TableCell>
-              <TableCell>Etapa</TableCell>
-              <TableCell>Despacho</TableCell>
-              <TableCell>Estado</TableCell>
-              <TableCell align="right">Acciones</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {procesos.map(p => (
-              <TableRow key={p.id} hover>
-                <TableCell><Typography fontWeight="medium">{p.radicado}</Typography></TableCell>
-                <TableCell>{p.demandante}</TableCell>
-                <TableCell>{p.demandado}</TableCell>
-                <TableCell>{p.claseProceso?.nombre}</TableCell>
-                <TableCell>{p.instancia === 'PRIMERA' ? '1ª Inst' : '2ª Inst'}</TableCell>
-                <TableCell>{p.etapaActual?.nombre}</TableCell>
-                <TableCell>{p.despachoActual?.codigo}</TableCell>
-                <TableCell>
-                  <Chip
-                    label={colorMap[p.colorEstado]?.label || p.colorEstado}
-                    sx={{
-                      bgcolor: colorMap[p.colorEstado]?.color || '#757575',
-                      color: '#fff',
-                      fontWeight: 'bold',
-                    }}
-                    size="small"
-                  />
-                </TableCell>
-                <TableCell align="right">
-                  <IconButton onClick={() => navigate(`/procesos/${p.id}`)}><Visibility /></IconButton>
-                  <IconButton onClick={() => navigate(`/procesos/${p.id}/editar`)}><Edit /></IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-            {procesos.length === 0 && (
+      <Paper sx={{ borderRadius: 3, overflow: 'hidden' }}>
+        <TableContainer>
+          <Table>
+            <TableHead>
               <TableRow>
-                <TableCell colSpan={9} align="center">No se encontraron procesos</TableCell>
+                <TableCell>Radicado</TableCell>
+                <TableCell>Demandante</TableCell>
+                <TableCell>Demandado</TableCell>
+                <TableCell>Clase</TableCell>
+                <TableCell>Instancia</TableCell>
+                <TableCell>Etapa</TableCell>
+                <TableCell>Despacho</TableCell>
+                <TableCell>Estado</TableCell>
+                <TableCell align="right">Acciones</TableCell>
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
+            </TableHead>
+            <TableBody>
+              {procesos.map(p => (
+                <TableRow key={p.id} hover sx={{ cursor: 'pointer' }} onClick={() => navigate(`/procesos/${p.id}`)}>
+                  <TableCell>
+                    <Typography fontWeight={600} fontSize="0.85rem" color="primary">{p.radicado}</Typography>
+                  </TableCell>
+                  <TableCell>{p.demandante}</TableCell>
+                  <TableCell>{p.demandado}</TableCell>
+                  <TableCell>
+                    <Typography variant="body2">{p.claseProceso?.nombre}</Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={p.instancia === 'PRIMERA' ? '1ª Inst' : '2ª Inst'}
+                      size="small"
+                      variant="outlined"
+                      color={p.instancia === 'PRIMERA' ? 'primary' : 'secondary'}
+                      sx={{ fontWeight: 600, fontSize: '0.7rem' }}
+                    />
+                  </TableCell>
+                  <TableCell>{p.etapaActual?.nombre}</TableCell>
+                  <TableCell>
+                    <Typography variant="body2" fontWeight={500}>{p.despachoActual?.codigo}</Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={colorMap[p.colorEstado]?.label || p.colorEstado}
+                      sx={{
+                        bgcolor: colorMap[p.colorEstado]?.color || '#757575',
+                        color: '#fff',
+                        fontWeight: 700,
+                        fontSize: '0.7rem',
+                      }}
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell align="right" onClick={e => e.stopPropagation()}>
+                    <IconButton size="small" onClick={() => navigate(`/procesos/${p.id}`)} sx={{ color: 'primary.main' }}>
+                      <Visibility fontSize="small" />
+                    </IconButton>
+                    <IconButton size="small" onClick={() => navigate(`/procesos/${p.id}/editar`)} sx={{ color: 'text.secondary' }}>
+                      <Edit fontSize="small" />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {procesos.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={9} align="center" sx={{ py: 6 }}>
+                    <Typography color="text.secondary">No se encontraron procesos</Typography>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
         <TablePagination
-          component="div" count={total} page={page}
+          component="div"
+          count={total}
+          page={page}
           onPageChange={(_, p) => setPage(p)}
           rowsPerPage={rowsPerPage}
           onRowsPerPageChange={e => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0) }}
           labelRowsPerPage="Filas por página"
         />
-      </TableContainer>
+      </Paper>
     </Box>
   )
 }

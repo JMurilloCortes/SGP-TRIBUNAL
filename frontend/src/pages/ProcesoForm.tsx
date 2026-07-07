@@ -121,16 +121,21 @@ export default function ProcesoForm() {
 
   return (
     <Box>
-      <Typography variant="h4" fontWeight="bold" mb={3}>
-        {isEdit ? 'Editar Proceso' : 'Registrar Nuevo Proceso'}
-      </Typography>
+      <Box mb={3}>
+        <Typography variant="h4" fontWeight={800} color="primary">
+          {isEdit ? 'Editar Proceso' : 'Registrar Proceso'}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" mt={0.5}>
+          {isEdit ? 'Modifique los datos del proceso judicial' : 'Ingrese los datos del nuevo proceso judicial'}
+        </Typography>
+      </Box>
 
-      <Paper sx={{ p: 3 }}>
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      <Paper sx={{ p: 3, borderRadius: 3 }}>
+        {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
 
         <form onSubmit={handleSubmit}>
           <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={es}>
-            <Grid container spacing={2}>
+            <Grid container spacing={2.5}>
               <Grid item xs={12} md={6}>
                 <TextField fullWidth label="Radicado" required
                   value={form.radicado} onChange={e => update('radicado', e.target.value)} />
@@ -209,10 +214,10 @@ export default function ProcesoForm() {
           </LocalizationProvider>
 
           <Box display="flex" gap={2} mt={3}>
-            <Button variant="contained" type="submit" disabled={loading}>
+            <Button variant="contained" type="submit" disabled={loading} sx={{ borderRadius: 2, px: 3, py: 1.2 }}>
               {loading ? 'Guardando...' : isEdit ? 'Actualizar' : 'Registrar'}
             </Button>
-            <Button variant="outlined" onClick={() => navigate('/procesos')}>Cancelar</Button>
+            <Button variant="outlined" onClick={() => navigate('/procesos')} sx={{ borderRadius: 2, px: 3 }}>Cancelar</Button>
           </Box>
         </form>
       </Paper>

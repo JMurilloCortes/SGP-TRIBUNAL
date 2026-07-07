@@ -29,65 +29,72 @@ export default function UsersList() {
 
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h4" fontWeight="bold">Usuarios</Typography>
-        <Button variant="contained" startIcon={<Add />} onClick={() => navigate('/usuarios/nuevo')}>
+      <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3}>
+        <Box>
+          <Typography variant="h4" fontWeight={800} color="primary">Usuarios</Typography>
+          <Typography variant="body2" color="text.secondary" mt={0.5}>
+            Gestión de usuarios del sistema
+          </Typography>
+        </Box>
+        <Button variant="contained" startIcon={<Add />} onClick={() => navigate('/usuarios/nuevo')} sx={{ borderRadius: 2, px: 3, py: 1.2 }}>
           Nuevo Usuario
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Nombre</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Rol</TableCell>
-              <TableCell>Despachos</TableCell>
-              <TableCell>Estado</TableCell>
-              <TableCell align="right">Acciones</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {users.map(u => (
-              <TableRow key={u.id} hover>
-                <TableCell><Typography fontWeight="medium">{u.nombre}</Typography></TableCell>
-                <TableCell>{u.email}</TableCell>
-                <TableCell>
-                  <Chip label={u.rol === 'ADMIN' ? 'Admin' : u.rol === 'NOTIFICADOR' ? 'Notificador' : 'Escribiente'}
-                    color={u.rol === 'ADMIN' ? 'primary' : u.rol === 'NOTIFICADOR' ? 'success' : 'default'} size="small" />
-                </TableCell>
-                <TableCell>
-                  {u.despachos?.length > 0
-                    ? u.despachos.map(d => d.codigo).join(', ')
-                    : '-'}
-                </TableCell>
-                <TableCell>
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <Switch checked={u.activo} disabled={u.rol === 'ADMIN'}
-                      onChange={() => handleToggleActivo(u.id)} size="small" />
-                    <Chip label={u.activo ? 'Activo' : 'Inactivo'}
-                      color={u.activo ? 'success' : 'error'} size="small" />
-                  </Box>
-                </TableCell>
-                <TableCell align="right">
-                  <IconButton onClick={() => navigate(`/usuarios/${u.id}`)} title="Ver">
-                    <Visibility />
-                  </IconButton>
-                  <IconButton onClick={() => navigate(`/usuarios/${u.id}/editar`)} title="Editar">
-                    <Edit />
-                  </IconButton>
-                  {u.rol !== 'ADMIN' && (
-                    <IconButton onClick={() => handleEliminar(u.id, u.nombre)} color="error" title="Eliminar">
-                      <Delete />
-                    </IconButton>
-                  )}
-                </TableCell>
+      <Paper sx={{ borderRadius: 3, overflow: 'hidden' }}>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Nombre</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Rol</TableCell>
+                <TableCell>Despachos</TableCell>
+                <TableCell>Estado</TableCell>
+                <TableCell align="right">Acciones</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {users.map(u => (
+                <TableRow key={u.id} hover>
+                  <TableCell><Typography fontWeight={600} fontSize="0.85rem">{u.nombre}</Typography></TableCell>
+                  <TableCell>{u.email}</TableCell>
+                  <TableCell>
+                    <Chip label={u.rol === 'ADMIN' ? 'Admin' : u.rol === 'NOTIFICADOR' ? 'Notificador' : 'Escribiente'}
+                      color={u.rol === 'ADMIN' ? 'primary' : u.rol === 'NOTIFICADOR' ? 'success' : 'default'} size="small" sx={{ fontWeight: 600 }} />
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2">
+                      {u.despachos?.length > 0 ? u.despachos.map(d => d.codigo).join(', ') : '-'}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <Switch checked={u.activo} disabled={u.rol === 'ADMIN'}
+                        onChange={() => handleToggleActivo(u.id)} size="small" />
+                      <Chip label={u.activo ? 'Activo' : 'Inactivo'}
+                        color={u.activo ? 'success' : 'error'} size="small" sx={{ fontWeight: 600 }} />
+                    </Box>
+                  </TableCell>
+                  <TableCell align="right">
+                    <IconButton onClick={() => navigate(`/usuarios/${u.id}`)} title="Ver" size="small" sx={{ color: 'primary.main' }}>
+                      <Visibility fontSize="small" />
+                    </IconButton>
+                    <IconButton onClick={() => navigate(`/usuarios/${u.id}/editar`)} title="Editar" size="small" sx={{ color: 'text.secondary' }}>
+                      <Edit fontSize="small" />
+                    </IconButton>
+                    {u.rol !== 'ADMIN' && (
+                      <IconButton onClick={() => handleEliminar(u.id, u.nombre)} color="error" size="small" title="Eliminar">
+                        <Delete fontSize="small" />
+                      </IconButton>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
     </Box>
   )
 }

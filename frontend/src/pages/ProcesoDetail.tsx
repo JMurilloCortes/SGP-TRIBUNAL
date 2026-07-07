@@ -1,16 +1,20 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
-  Box, Typography, Paper, Grid, Chip, CircularProgress, Button,
+  Box, Typography, Paper, Grid, Chip, Button, CircularProgress,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  IconButton,
+  IconButton, Dialog, DialogTitle, DialogContent, DialogActions,
+  TextField, Alert, Card, CardContent, Avatar, Divider, Tabs, Tab,
 } from '@mui/material'
-import { Edit, ArrowBack, Add, CheckCircle, Delete, Description, Notifications } from '@mui/icons-material'
+import {
+  ArrowBack, Edit, Gavel, Description, History,
+  Person, CalendarToday, FolderOpen, Notifications as NotifIcon,
+} from '@mui/icons-material'
 import api from '../services/api'
-import type { Proceso } from '../types'
+import { useAuth } from '../context/AuthContext'
 import ProvidenciaDialog from '../components/ProvidenciaDialog'
 import GenerarOficioDialog from '../components/GenerarOficioDialog'
-import { useAuth } from '../context/AuthContext'
+import type { Proceso } from '../types'
 
 const colorMap: Record<string, { label: string; color: string }> = {
   VERDE: { label: 'Al día', color: '#2e7d32' },
@@ -23,213 +27,287 @@ const colorMap: Record<string, { label: string; color: string }> = {
 export default function ProcesoDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [proceso, setProceso] = useState<Proceso | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [oficioDialogOpen, setOficioDialogOpen] = useState(false)
   const { user } = useAuth()
+  const [proceso, setProceso] = useState<Proceso | null>(null)
+  const [tab, setTab] = useState(0)
+  const [providenciaOpen, setProvidenciaOpen] = useState(false)
+  const [oficioOpen, setOficioOpen] = useState(false)
+  const [cambioEtapaOpen, setCambioEtapaOpen] = useState(false)
+  const [etapaId, setEtapaId] = useState('')
+  const [descripcion, setDescripcion] = useState('')
+  const [error, setError] = useState('')
 
-  const load = useCallback(() => {
-    if (!id) return
-    api.get(`/procesos/${id}`)
-      .then(r => setProceso(r.data))
-      .catch(() => navigate('/procesos'))
-      .finally(() => setLoading(false))
+  useEffect(() => {
+    api.get(`/procesos/${id}`).then(r => setProceso(r.data))
   }, [id])
 
-  useEffect(() => { load() }, [load])
+  if (!proceso) return (
+    <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+      <CircularProgress />
+    </Box>
+  )
 
-  async function handleCumplir(terminoId: number) {
-    await api.patch(`/terminos/${terminoId}/cumplir`)
-    load()
+  async function handleCambiarEtapa() {
+    setError('')
+    try {
+      await api.patch(`/procesos/${id}/etapa`, { etapaActualId: parseInt(etapaId), descripcion })
+      const r = await api.get(`/procesos/${id}`)
+      setProceso(r.data)
+      setCambioEtapaOpen(false)
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Error al cambiar etapa')
+    }
   }
 
-  async function handleEliminarProvidencia(pvId: number) {
-    if (!confirm('¿Eliminar esta providencia?')) return
-    await api.delete(`/providencias/${pvId}`)
-    load()
-  }
-
-  if (loading) return <Box textAlign="center" mt={4}><CircularProgress /></Box>
-  if (!proceso) return null
-
-  const terminoProximo = proceso.terminos?.find(t => t.estado === 'PENDIENTE')
+  const infoCards = [
+    { label: 'Radicado', value: proceso.radicado, icon: <FolderOpen /> },
+    { label: 'Demandante', value: proceso.demandante, icon: <Person /> },
+    { label: 'Demandado', value: proceso.demandado, icon: <Person /> },
+    { label: 'Instancia', value: proceso.instancia === 'PRIMERA' ? 'Primera Instancia' : 'Segunda Instancia', icon: <Gavel /> },
+    { label: 'Clase', value: (proceso as any).claseProceso?.nombre || '-', icon: <FolderOpen /> },
+    { label: 'Despacho', value: (proceso as any).despachoActual?.nombre || '-', icon: <Gavel /> },
+    { label: 'Etapa Actual', value: (proceso as any).etapaActual?.nombre || '-', icon: <History /> },
+    { label: 'Ingreso Tribunal', value: new Date(proceso.fechaIngresoTribunal).toLocaleDateString('es-CO'), icon: <CalendarToday /> },
+  ]
 
   return (
     <Box>
       <Box display="flex" alignItems="center" gap={2} mb={3}>
-        <Button startIcon={<ArrowBack />} onClick={() => navigate('/procesos')}>Volver</Button>
-        <Typography variant="h4" fontWeight="bold" flex={1}>
-          {proceso.radicado}
-        </Typography>
-        <Button variant="outlined" startIcon={<Description />}
-          onClick={() => setOficioDialogOpen(true)}>
-          Generar Oficio
-        </Button>
-        <Button variant="outlined" startIcon={<Edit />}
-          onClick={() => navigate(`/procesos/${id}/editar`)}>
+        <IconButton onClick={() => navigate('/procesos')} sx={{ bgcolor: 'rgba(13,27,74,0.08)', borderRadius: 2 }}>
+          <ArrowBack />
+        </IconButton>
+        <Box flex={1}>
+          <Box display="flex" alignItems="center" gap={2}>
+            <Typography variant="h4" fontWeight={800} color="primary">{proceso.radicado}</Typography>
+            <Chip
+              label={colorMap[proceso.colorEstado]?.label || proceso.colorEstado}
+              sx={{ bgcolor: colorMap[proceso.colorEstado]?.color || '#757575', color: '#fff', fontWeight: 700 }}
+              size="small"
+            />
+            <Chip
+              label={proceso.instancia === 'PRIMERA' ? '1ª Instancia' : '2ª Instancia'}
+              variant="outlined"
+              color={proceso.instancia === 'PRIMERA' ? 'primary' : 'secondary'}
+              size="small"
+              sx={{ fontWeight: 600 }}
+            />
+          </Box>
+          <Typography variant="body2" color="text.secondary" mt={0.5}>
+            {(proceso as any).claseProceso?.nombre} - {(proceso as any).despachoActual?.nombre}
+          </Typography>
+        </Box>
+        <Button variant="outlined" startIcon={<Edit />} onClick={() => navigate(`/procesos/${id}/editar`)} sx={{ borderRadius: 2 }}>
           Editar
         </Button>
       </Box>
 
-      <Grid container spacing={2} mb={3}>
-        <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>Información General</Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={6}><Typography variant="body2" color="text.secondary">Radicado</Typography><Typography>{proceso.radicado}</Typography></Grid>
-              <Grid item xs={6}><Typography variant="body2" color="text.secondary">Instancia</Typography><Typography>{proceso.instancia === 'PRIMERA' ? 'Primera Instancia (nace en el Tribunal)' : 'Segunda Instancia (viene de un Juzgado)'}</Typography></Grid>
-              <Grid item xs={6}><Typography variant="body2" color="text.secondary">Demandante</Typography><Typography>{proceso.demandante}</Typography></Grid>
-              <Grid item xs={6}><Typography variant="body2" color="text.secondary">Demandado</Typography><Typography>{proceso.demandado}</Typography></Grid>
-              <Grid item xs={4}><Typography variant="body2" color="text.secondary">Clase</Typography><Typography>{proceso.claseProceso?.nombre}</Typography></Grid>
-              <Grid item xs={4}><Typography variant="body2" color="text.secondary">Despacho</Typography><Typography>{proceso.despachoActual?.nombre}</Typography></Grid>
-              <Grid item xs={4}><Typography variant="body2" color="text.secondary">Etapa</Typography><Chip label={proceso.etapaActual?.nombre} color="primary" size="small" /></Grid>
-              <Grid item xs={4}><Typography variant="body2" color="text.secondary">Estado</Typography><Chip label={colorMap[proceso.colorEstado]?.label} sx={{ bgcolor: colorMap[proceso.colorEstado]?.color, color: '#fff' }} size="small" /></Grid>
-              <Grid item xs={4}><Typography variant="body2" color="text.secondary">Fecha Ingreso</Typography><Typography>{new Date(proceso.fechaIngresoTribunal).toLocaleDateString('es-CO')}</Typography></Grid>
-              {proceso.juzgadoOrigen && <Grid item xs={4}><Typography variant="body2" color="text.secondary">Juzgado Origen</Typography><Typography>{proceso.juzgadoOrigen.nombre}</Typography></Grid>}
-            </Grid>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>Término Actual</Typography>
-            {terminoProximo ? (
-              <Box>
-                <Typography variant="body2" color="text.secondary">
-                  {terminoProximo.providencia?.tipoProvidencia?.nombre}
-                </Typography>
-                <Typography variant="h5" fontWeight="bold" color={
-                  terminoProximo.estado === 'VENCIDO' ? 'error' : 'text.primary'
-                }>
-                  {new Date(terminoProximo.fechaVencimiento).toLocaleDateString('es-CO')}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {terminoProximo.diasTotales} días hábiles desde notificación
-                </Typography>
-                <Button
-                  variant="contained" color="success" size="small"
-                  startIcon={<CheckCircle />} sx={{ mt: 1 }}
-                  onClick={() => handleCumplir(terminoProximo.id)}
-                >
-                  Cumplir término
-                </Button>
-              </Box>
-            ) : (
-              <Typography variant="body2" color="text.secondary">Sin términos activos</Typography>
-            )}
-          </Paper>
-        </Grid>
+      <Grid container spacing={3} mb={3}>
+        {infoCards.map((c, i) => (
+          <Grid item xs={12} sm={6} md={3} key={i}>
+            <Card sx={{ borderRadius: 2 }}>
+              <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 2, '&:last-child': { pb: 2 } }}>
+                <Avatar sx={{ width: 40, height: 40, bgcolor: 'rgba(13,27,74,0.08)', color: 'primary.main' }}>
+                  {c.icon}
+                </Avatar>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography variant="caption" color="text.secondary" fontWeight={500}>{c.label}</Typography>
+                  <Typography variant="body2" fontWeight={600} noWrap>{c.value}</Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
       </Grid>
 
-      <Paper sx={{ p: 2 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h6">Providencias</Typography>
-          <Button variant="contained" startIcon={<Add />} onClick={() => setDialogOpen(true)}>
+      {(user?.rol === 'ADMIN' || user?.rol === 'ESCRIBIENTE') && (
+        <Box display="flex" gap={2} mb={3}>
+          <Button variant="contained" startIcon={<Gavel />} onClick={() => setProvidenciaOpen(true)}>
             Registrar Providencia
           </Button>
+          <Button variant="contained" color="secondary" startIcon={<Description />} onClick={() => setOficioOpen(true)}>
+            Generar Oficio
+          </Button>
+          <Button variant="outlined" startIcon={<History />} onClick={() => setCambioEtapaOpen(true)}>
+            Cambiar Etapa
+          </Button>
         </Box>
+      )}
 
-        {proceso.providencias && proceso.providencias.length > 0 ? (
+      <Paper sx={{ borderRadius: 3, overflow: 'hidden' }}>
+        <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 2, pt: 1 }}>
+          <Tab label="Providencias" icon={<Gavel />} iconPosition="start" />
+          <Tab label="Términos" icon={<CalendarToday />} iconPosition="start" />
+          <Tab label="Actuaciones" icon={<History />} iconPosition="start" />
+          <Tab label="Notificaciones" icon={<NotifIcon />} iconPosition="start" />
+        </Tabs>
+        <Divider />
+
+        {tab === 0 && (
           <TableContainer>
-            <Table size="small">
+            <Table>
               <TableHead>
                 <TableRow>
+                  <TableCell>Fecha</TableCell>
                   <TableCell>Tipo</TableCell>
-                  <TableCell>Fecha Providencia</TableCell>
+                  <TableCell>Descripción</TableCell>
                   <TableCell>Notificación</TableCell>
-                  <TableCell>Orden</TableCell>
                   <TableCell>Término</TableCell>
-                  <TableCell>Estado</TableCell>
-                  <TableCell align="right">Acción</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {proceso.providencias.map(pv => {
-                  const termino = pv.terminos?.[0]
-                  return (
-                    <TableRow key={pv.id}>
-                      <TableCell><Typography fontWeight="medium">{pv.tipoProvidencia?.nombre}</Typography></TableCell>
-                      <TableCell>{new Date(pv.fechaProvidencia).toLocaleDateString('es-CO')}</TableCell>
-                      <TableCell>
-                        {pv.fechaNotificacion ? (
-                          new Date(pv.fechaNotificacion).toLocaleDateString('es-CO')
-                        ) : (
-                          <Chip label="Pendiente" color="warning" size="small" />
-                        )}
-                      </TableCell>
-                      <TableCell>{pv.orden}</TableCell>
-                      <TableCell>
-                        {termino ? (
-                          <>
-                            <Typography variant="body2">
-                              Vence: {new Date(termino.fechaVencimiento).toLocaleDateString('es-CO')}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              ({termino.diasTotales} días hábiles)
-                            </Typography>
-                          </>
-                        ) : '-'}
-                      </TableCell>
-                      <TableCell>
-                        {termino ? (
-                          <Chip
-                            label={termino.estado === 'CUMPLIDO' ? 'Cumplido' : termino.estado === 'VENCIDO' ? 'Vencido' : 'Pendiente'}
-                            color={termino.estado === 'CUMPLIDO' ? 'success' : termino.estado === 'VENCIDO' ? 'error' : 'warning'}
-                            size="small"
-                          />
-                        ) : '-'}
-                      </TableCell>
-                      <TableCell align="right">
-                        {!pv.fechaNotificacion && user?.rol === 'NOTIFICADOR' ? (
-                          <IconButton size="small" color="success"
-                            onClick={async () => { await api.patch(`/providencias/${pv.id}/notificar`); load() }}
-                            title="Marcar como notificado">
-                            <Notifications />
-                          </IconButton>
-                        ) : null}
-                        {termino?.estado === 'PENDIENTE' ? (
-                          <IconButton size="small" color="success"
-                            onClick={() => handleCumplir(termino.id)}
-                            title="Cumplir término">
-                            <CheckCircle />
-                          </IconButton>
-                        ) : null}
-                        <IconButton size="small" color="error"
-                          onClick={() => handleEliminarProvidencia(pv.id)}
-                          title="Eliminar">
-                          <Delete />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
+                {((proceso as any).providencias || []).map((p: any) => (
+                  <TableRow key={p.id} hover>
+                    <TableCell>{new Date(p.fechaProvidencia).toLocaleDateString('es-CO')}</TableCell>
+                    <TableCell>
+                      <Chip label={p.tipoProvidencia?.nombre} size="small" variant="outlined" sx={{ fontWeight: 500 }} />
+                    </TableCell>
+                    <TableCell>{p.descripcion || '-'}</TableCell>
+                    <TableCell>
+                      {p.fechaNotificacion ? (
+                        <Chip label={new Date(p.fechaNotificacion).toLocaleDateString('es-CO')} size="small" color="success" />
+                      ) : (
+                        <Chip label="Sin notificar" size="small" color="warning" />
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {p.terminos?.length > 0 ? (
+                        <Chip
+                          label={`${p.terminos[0].diasTotales}d - ${p.terminos[0].estado}`}
+                          size="small"
+                          color={p.terminos[0].estado === 'VENCIDO' ? 'error' : p.terminos[0].estado === 'CUMPLIDO' ? 'success' : 'warning'}
+                        />
+                      ) : '-'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {(!(proceso as any).providencias || (proceso as any).providencias.length === 0) && (
+                  <TableRow><TableCell colSpan={5} align="center" sx={{ py: 4 }}>Sin providencias registradas</TableCell></TableRow>
+                )}
               </TableBody>
             </Table>
           </TableContainer>
-        ) : (
-          <Typography variant="body2" color="text.secondary" py={2} textAlign="center">
-            No se han registrado providencias. Haga clic en "Registrar Providencia" para agregar una.
-          </Typography>
+        )}
+
+        {tab === 1 && (
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Providencia</TableCell>
+                  <TableCell>Días</TableCell>
+                  <TableCell>Inicio</TableCell>
+                  <TableCell>Vencimiento</TableCell>
+                  <TableCell>Estado</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {((proceso as any).terminos || []).map((t: any) => (
+                  <TableRow key={t.id} hover>
+                    <TableCell>{t.providencia?.tipoProvidencia?.nombre || '-'}</TableCell>
+                    <TableCell>{t.diasTotales}</TableCell>
+                    <TableCell>{new Date(t.fechaInicio).toLocaleDateString('es-CO')}</TableCell>
+                    <TableCell>{new Date(t.fechaVencimiento).toLocaleDateString('es-CO')}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={t.estado}
+                        size="small"
+                        color={t.estado === 'VENCIDO' ? 'error' : t.estado === 'CUMPLIDO' ? 'success' : 'warning'}
+                        sx={{ fontWeight: 600 }}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {(!(proceso as any).terminos || (proceso as any).terminos.length === 0) && (
+                  <TableRow><TableCell colSpan={5} align="center" sx={{ py: 4 }}>Sin términos registrados</TableCell></TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+
+        {tab === 2 && (
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Fecha</TableCell>
+                  <TableCell>Usuario</TableCell>
+                  <TableCell>Descripción</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {((proceso as any).actuaciones || []).map((a: any) => (
+                  <TableRow key={a.id} hover>
+                    <TableCell>{new Date(a.createdAt).toLocaleDateString('es-CO')}</TableCell>
+                    <TableCell>{a.user?.nombre || '-'}</TableCell>
+                    <TableCell>{a.descripcion}</TableCell>
+                  </TableRow>
+                ))}
+                {(!(proceso as any).actuaciones || (proceso as any).actuaciones.length === 0) && (
+                  <TableRow><TableCell colSpan={3} align="center" sx={{ py: 4 }}>Sin actuaciones registradas</TableCell></TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+
+        {tab === 3 && (
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Fecha</TableCell>
+                  <TableCell>Tipo</TableCell>
+                  <TableCell>Mensaje</TableCell>
+                  <TableCell>Estado</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {((proceso as any).notificaciones || []).map((n: any) => (
+                  <TableRow key={n.id} hover>
+                    <TableCell>{new Date(n.createdAt).toLocaleDateString('es-CO')}</TableCell>
+                    <TableCell>{n.tipo}</TableCell>
+                    <TableCell>{n.mensaje}</TableCell>
+                    <TableCell>
+                      <Chip label={n.leida ? 'Leída' : 'No leída'} size="small" color={n.leida ? 'success' : 'warning'} sx={{ fontWeight: 500 }} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {(!(proceso as any).notificaciones || (proceso as any).notificaciones.length === 0) && (
+                  <TableRow><TableCell colSpan={4} align="center" sx={{ py: 4 }}>Sin notificaciones</TableCell></TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
         )}
       </Paper>
 
-      {id && (
-        <ProvidenciaDialog
-          open={dialogOpen}
-          procesoId={parseInt(id)}
-          onClose={() => setDialogOpen(false)}
-          onCreated={load}
-        />
-      )}
-      {id && (
-        <GenerarOficioDialog
-          open={oficioDialogOpen}
-          procesoId={parseInt(id)}
-          juzgadoOrigenId={proceso.juzgadoOrigen?.id}
-          onClose={() => setOficioDialogOpen(false)}
-        />
-      )}
+      <ProvidenciaDialog
+        open={providenciaOpen}
+        procesoId={Number(id)}
+        onClose={() => setProvidenciaOpen(false)}
+        onCreated={() => api.get(`/procesos/${id}`).then(r => setProceso(r.data))}
+      />
+
+      <GenerarOficioDialog
+        open={oficioOpen}
+        procesoId={Number(id)}
+        juzgadoOrigenId={(proceso as any).juzgadoOrigenId}
+        onClose={() => setOficioOpen(false)}
+      />
+
+      <Dialog open={cambioEtapaOpen} onClose={() => setCambioEtapaOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle fontWeight={700}>Cambiar Etapa del Proceso</DialogTitle>
+        <DialogContent>
+          {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
+          <TextField fullWidth label="ID de la nueva etapa" value={etapaId} onChange={e => setEtapaId(e.target.value)} margin="normal" />
+          <TextField fullWidth label="Descripción (opcional)" value={descripcion} onChange={e => setDescripcion(e.target.value)} margin="normal" multiline rows={2} />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setCambioEtapaOpen(false)}>Cancelar</Button>
+          <Button variant="contained" onClick={handleCambiarEtapa}>Guardar</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }

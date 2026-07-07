@@ -51,15 +51,20 @@ export default function NotificacionesPage() {
 
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h4" fontWeight="bold">Notificaciones</Typography>
-        <Button startIcon={<DoneAll />} onClick={handleMarcarTodasLeidas}>
+      <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3}>
+        <Box>
+          <Typography variant="h4" fontWeight={800} color="primary">Notificaciones</Typography>
+          <Typography variant="body2" color="text.secondary" mt={0.5}>
+            Centro de notificaciones del sistema
+          </Typography>
+        </Box>
+        <Button startIcon={<DoneAll />} onClick={handleMarcarTodasLeidas} sx={{ borderRadius: 2 }}>
           Marcar todas leídas
         </Button>
       </Box>
 
-      <Paper>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)}>
+      <Paper sx={{ borderRadius: 3, overflow: 'hidden' }}>
+        <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 2, pt: 1 }}>
           <Tab label={`Todas (${notificaciones.length})`} />
           <Tab label={`Sin leer (${notificaciones.filter(n => !n.leida).length})`} />
         </Tabs>
