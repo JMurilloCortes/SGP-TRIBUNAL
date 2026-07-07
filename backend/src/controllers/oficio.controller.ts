@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { prisma } from '../config/database'
+import { getIO } from '../config/socket'
 import { AuthRequest } from '../types'
 import { z } from 'zod'
 import {
@@ -44,8 +45,9 @@ export async function generarOficio(req: AuthRequest, res: Response) {
   const modelo = modelosOficio[data.modeloId]
   if (!modelo) return res.status(400).json({ message: 'Modelo de oficio inválido' })
 
-  const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
     let numeroOficio = ''
+    let consecActualizado: any = null
     if (data.consecutivoId) {
       const c = await tx.consecutivo.findUnique({ where: { id: data.consecutivoId } })
       if (!c || c.tipo !== 'OFICIO') {
@@ -54,9 +56,10 @@ export async function generarOficio(req: AuthRequest, res: Response) {
       if (c.estado !== 'DISPONIBLE') {
         throw new Error(`El consecutivo ${c.numero} ya está ocupado`)
       }
-      await tx.consecutivo.update({
+      consecActualizado = await tx.consecutivo.update({
         where: { id: c.id },
         data: { estado: 'OCUPADO', tomadoPor: req.user!.userId },
+        include: { tomadoUser: { select: { nombre: true } } },
       })
       numeroOficio = c.numero
     }
@@ -104,8 +107,12 @@ export async function generarOficio(req: AuthRequest, res: Response) {
       },
     })
 
-    return { buffer, numeroOficio }
+    return { buffer, numeroOficio, consecActualizado }
   })
+
+  if (result.consecActualizado) {
+    getIO().emit('consecutivo:update', result.consecActualizado)
+  }
 
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
   res.setHeader('Content-Disposition', `attachment; filename="oficio_${result.numeroOficio || proceso.radicado}.docx"`)
