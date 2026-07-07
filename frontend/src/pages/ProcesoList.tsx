@@ -10,11 +10,11 @@ import api from '../services/api'
 import type { Proceso, Despacho, Etapa } from '../types'
 
 const colorMap: Record<string, { label: string; color: string }> = {
-  VERDE: { label: 'Verde', color: '#2e7d32' },
-  AMARILLO: { label: 'Amarillo', color: '#ed6c02' },
-  NARANJA: { label: 'Naranja', color: '#e65100' },
-  ROJO: { label: 'Rojo', color: '#d32f2f' },
-  GRIS: { label: 'Gris', color: '#757575' },
+  VERDE: { label: 'Al día', color: '#2e7d32' },
+  AMARILLO: { label: 'Próximo a vencer', color: '#ed6c02' },
+  NARANJA: { label: 'Por vencer', color: '#e65100' },
+  ROJO: { label: 'Vencido', color: '#d32f2f' },
+  GRIS: { label: 'Terminado', color: '#757575' },
 }
 
 export default function ProcesoList() {
