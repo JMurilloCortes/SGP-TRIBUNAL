@@ -40,7 +40,7 @@ export async function list(req: AuthRequest, res: Response) {
 }
 
 export async function marcarLeida(req: AuthRequest, res: Response) {
-  const id = parseInt(req.params.id)
+  const id = parseInt(req.params.id as string)
   await prisma.notificacion.updateMany({
     where: { id, OR: [{ userId: req.user!.userId }, { userId: null }] },
     data: { leida: true },
@@ -87,7 +87,7 @@ export async function generarAlertasTerminos() {
       fechaVencimiento: { gte: now, lte: enTresDias },
     },
     include: {
-      proceso: { include: { despachoActual: { include: { usuarios: true } } } },
+      proceso: { include: { despachoActual: { include: { usuarios: { include: { user: true } } } } } },
       providencia: { include: { tipoProvidencia: true } },
     },
   })
@@ -96,17 +96,18 @@ export async function generarAlertasTerminos() {
     const mensaje = `Término próximo a vencer: ${termino.providencia.tipoProvidencia.nombre} del proceso ${termino.proceso.radicado}. Vence: ${termino.fechaVencimiento.toLocaleDateString('es-CO')}`
 
     // Notificar a usuarios del despacho
-    for (const user of termino.proceso.despachoActual.usuarios) {
+    for (const ud of termino.proceso.despachoActual.usuarios) {
+      if (!ud.user.activo) continue
       const existente = await prisma.notificacion.findFirst({
         where: {
           procesoId: termino.procesoId,
           tipo: 'ALERTA_VENCIMIENTO',
-          userId: user.id,
+          userId: ud.user.id,
           createdAt: { gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) },
         },
       })
       if (!existente) {
-        await crearNotificacion(termino.procesoId, 'ALERTA_VENCIMIENTO', mensaje, user.id)
+        await crearNotificacion(termino.procesoId, 'ALERTA_VENCIMIENTO', mensaje, ud.user.id)
       }
     }
   }
@@ -117,7 +118,7 @@ export async function generarAlertasTerminos() {
       estado: 'VENCIDO',
     },
     include: {
-      proceso: { include: { despachoActual: { include: { usuarios: true } } } },
+      proceso: { include: { despachoActual: { include: { usuarios: { include: { user: true } } } } } },
       providencia: { include: { tipoProvidencia: true } },
     },
   })
@@ -125,17 +126,18 @@ export async function generarAlertasTerminos() {
   for (const termino of terminosVencidos) {
     const mensaje = `⚠ TÉRMINO VENCIDO: ${termino.providencia.tipoProvidencia.nombre} del proceso ${termino.proceso.radicado}. Venció el ${termino.fechaVencimiento.toLocaleDateString('es-CO')}`
 
-    for (const user of termino.proceso.despachoActual.usuarios) {
+    for (const ud of termino.proceso.despachoActual.usuarios) {
+      if (!ud.user.activo) continue
       const existente = await prisma.notificacion.findFirst({
         where: {
           procesoId: termino.procesoId,
           tipo: 'VENCIDO',
-          userId: user.id,
+          userId: ud.user.id,
           createdAt: { gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) },
         },
       })
       if (!existente) {
-        await crearNotificacion(termino.procesoId, 'VENCIDO', mensaje, user.id)
+        await crearNotificacion(termino.procesoId, 'VENCIDO', mensaje, ud.user.id)
       }
     }
   }

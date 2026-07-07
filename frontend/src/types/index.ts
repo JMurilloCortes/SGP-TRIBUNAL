@@ -3,8 +3,7 @@ export interface User {
   nombre: string
   email: string
   rol: 'ADMIN' | 'ESCRIBIENTE'
-  despachoId: number | null
-  despacho?: Despacho
+  despachos: Despacho[]
   activo: boolean
 }
 

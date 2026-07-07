@@ -6,10 +6,18 @@ CREATE TABLE "users" (
     "password_hash" TEXT NOT NULL,
     "rol" TEXT NOT NULL,
     "activo" BOOLEAN NOT NULL DEFAULT true,
-    "despacho_id" INTEGER,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL,
-    CONSTRAINT "users_despacho_id_fkey" FOREIGN KEY ("despacho_id") REFERENCES "despachos" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+    "updated_at" DATETIME NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "users_despachos" (
+    "user_id" INTEGER NOT NULL,
+    "despacho_id" INTEGER NOT NULL,
+
+    PRIMARY KEY ("user_id", "despacho_id"),
+    CONSTRAINT "users_despachos_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "users_despachos_despacho_id_fkey" FOREIGN KEY ("despacho_id") REFERENCES "despachos" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable

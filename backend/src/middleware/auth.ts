@@ -1,9 +1,10 @@
 import { Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
+import { prisma } from '../config/database'
 import { env } from '../config/env'
 import { AuthPayload, AuthRequest } from '../types'
 
-export function authenticate(req: AuthRequest, res: Response, next: NextFunction) {
+export async function authenticate(req: AuthRequest, res: Response, next: NextFunction) {
   const header = req.headers.authorization
   if (!header || !header.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'Token requerido' })
@@ -13,6 +14,14 @@ export function authenticate(req: AuthRequest, res: Response, next: NextFunction
   try {
     const decoded = jwt.verify(token, env.JWT_SECRET) as AuthPayload
     req.user = decoded
+
+    // Cargar despachos del usuario
+    const asignaciones = await prisma.userDespacho.findMany({
+      where: { userId: decoded.userId },
+      select: { despachoId: true },
+    })
+    req.despachoIds = asignaciones.map(a => a.despachoId)
+
     next()
   } catch {
     return res.status(401).json({ message: 'Token inválido o expirado' })

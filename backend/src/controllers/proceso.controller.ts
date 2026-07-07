@@ -40,9 +40,9 @@ export async function list(req: AuthRequest, res: Response) {
   if (color) where.colorEstado = color as ColorEstado
   if (vigente !== undefined) where.vigente = vigente === 'true'
 
-  // Non-admin users only see their despacho's processes
-  if (req.user?.rol !== 'ADMIN' && req.user?.despachoId) {
-    where.despachoActualId = req.user.despachoId
+  // Non-admin users only see their despachos' processes
+  if (req.user?.rol !== 'ADMIN' && req.despachoIds && req.despachoIds.length > 0) {
+    where.despachoActualId = { in: req.despachoIds }
   }
 
   const skip = (parseInt(page) - 1) * parseInt(limit)
@@ -72,7 +72,7 @@ export async function list(req: AuthRequest, res: Response) {
 }
 
 export async function getById(req: AuthRequest, res: Response) {
-  const id = parseInt(req.params.id)
+  const id = parseInt(req.params.id as string)
   const proceso = await prisma.proceso.findUnique({
     where: { id },
     include: {
@@ -140,7 +140,7 @@ export async function create(req: AuthRequest, res: Response) {
 }
 
 export async function update(req: AuthRequest, res: Response) {
-  const id = parseInt(req.params.id)
+  const id = parseInt(req.params.id as string)
   const data = updateProcesoSchema.parse(req.body)
 
   const proceso = await prisma.proceso.findUnique({ where: { id } })
@@ -174,7 +174,7 @@ export async function update(req: AuthRequest, res: Response) {
 }
 
 export async function cambiarEtapa(req: AuthRequest, res: Response) {
-  const id = parseInt(req.params.id)
+  const id = parseInt(req.params.id as string)
   const { etapaActualId, descripcion } = z.object({
     etapaActualId: z.number().int().positive(),
     descripcion: z.string().optional(),

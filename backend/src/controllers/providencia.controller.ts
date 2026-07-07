@@ -15,7 +15,7 @@ const createProvidenciaSchema = z.object({
 })
 
 export async function list(req: AuthRequest, res: Response) {
-  const id = parseInt(req.params.id)
+  const id = parseInt(req.params.id as string)
   const data = await prisma.providencia.findMany({
     where: { procesoId: id },
     include: {
@@ -28,7 +28,7 @@ export async function list(req: AuthRequest, res: Response) {
 }
 
 export async function create(req: AuthRequest, res: Response) {
-  const procesoId = parseInt(req.params.id)
+  const procesoId = parseInt(req.params.id as string)
   const data = createProvidenciaSchema.parse(req.body)
 
   const proceso = await prisma.proceso.findUnique({ where: { id: procesoId } })
@@ -84,7 +84,10 @@ export async function create(req: AuthRequest, res: Response) {
 
   // Create notification for users in the despacho
   const users = await prisma.user.findMany({
-    where: { despachoId: proceso.despachoActualId, activo: true },
+    where: {
+      activo: true,
+      despachos: { some: { despachoId: proceso.despachoActualId } },
+    },
   })
   for (const user of users) {
     await crearNotificacion(
@@ -99,7 +102,7 @@ export async function create(req: AuthRequest, res: Response) {
 }
 
 export async function remove(req: AuthRequest, res: Response) {
-  const id = parseInt(req.params.id)
+  const id = parseInt(req.params.id as string)
   const providencia = await prisma.providencia.findUnique({ where: { id } })
   if (!providencia) return res.status(404).json({ message: 'Providencia no encontrada' })
 
@@ -110,7 +113,7 @@ export async function remove(req: AuthRequest, res: Response) {
 }
 
 export async function cumplirTermino(req: AuthRequest, res: Response) {
-  const id = parseInt(req.params.id)
+  const id = parseInt(req.params.id as string)
 
   const termino = await prisma.terminoProceso.findUnique({
     where: { id },

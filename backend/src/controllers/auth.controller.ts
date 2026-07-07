@@ -16,13 +16,16 @@ const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   rol: z.enum(['ADMIN', 'ESCRIBIENTE']).default('ESCRIBIENTE'),
-  despachoId: z.number().int().positive().nullable().optional(),
+  despachoIds: z.array(z.number().int().positive()).optional(),
 })
 
 export async function login(req: AuthRequest, res: Response) {
   const { email, password } = loginSchema.parse(req.body)
 
-  const user = await prisma.user.findUnique({ where: { email } })
+  const user = await prisma.user.findUnique({
+    where: { email },
+    include: { despachos: { include: { despacho: true } } },
+  })
   if (!user || !user.activo) {
     return res.status(401).json({ message: 'Credenciales inválidas' })
   }
@@ -36,11 +39,10 @@ export async function login(req: AuthRequest, res: Response) {
     userId: user.id,
     email: user.email,
     rol: user.rol,
-    despachoId: user.despachoId,
   }
 
   const token = jwt.sign(payload, env.JWT_SECRET, {
-    expiresIn: env.JWT_EXPIRES_IN,
+    expiresIn: env.JWT_EXPIRES_IN as any,
   })
 
   return res.json({
@@ -50,7 +52,7 @@ export async function login(req: AuthRequest, res: Response) {
       nombre: user.nombre,
       email: user.email,
       rol: user.rol,
-      despachoId: user.despachoId,
+      despachos: user.despachos.map(d => d.despacho),
     },
   })
 }
@@ -65,19 +67,24 @@ export async function register(req: AuthRequest, res: Response) {
       email: data.email,
       passwordHash,
       rol: data.rol,
-      despachoId: data.despachoId ?? null,
+      despachos: data.despachoIds
+        ? { create: data.despachoIds.map(id => ({ despachoId: id })) }
+        : undefined,
     },
     select: {
       id: true,
       nombre: true,
       email: true,
       rol: true,
-      despachoId: true,
       activo: true,
+      despachos: { include: { despacho: true } },
     },
   })
 
-  return res.status(201).json(user)
+  return res.status(201).json({
+    ...user,
+    despachos: user.despachos.map(d => d.despacho),
+  })
 }
 
 export async function me(req: AuthRequest, res: Response) {
@@ -88,10 +95,14 @@ export async function me(req: AuthRequest, res: Response) {
       nombre: true,
       email: true,
       rol: true,
-      despachoId: true,
       activo: true,
-      despacho: true,
+      despachos: { include: { despacho: true } },
     },
   })
-  return res.json(user)
+  if (!user) return res.status(404).json({ message: 'Usuario no encontrado' })
+
+  return res.json({
+    ...user,
+    despachos: user.despachos.map(d => d.despacho),
+  })
 }

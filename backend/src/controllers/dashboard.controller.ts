@@ -3,8 +3,8 @@ import { prisma } from '../config/database'
 import { AuthRequest } from '../types'
 
 export async function stats(req: AuthRequest, res: Response) {
-  const where = req.user?.rol !== 'ADMIN' && req.user?.despachoId
-    ? { despachoActualId: req.user.despachoId }
+  const where = req.user?.rol !== 'ADMIN' && req.despachoIds && req.despachoIds.length > 0
+    ? { despachoActualId: { in: req.despachoIds } }
     : {}
 
   const [total, activos, vencidos, porVencer, archivados, proximos] = await Promise.all([

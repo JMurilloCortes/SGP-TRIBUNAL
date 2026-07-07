@@ -57,15 +57,25 @@ model User {
   passwordHash String    @map("password_hash")
   rol          Rol
   activo       Boolean   @default(true)
-  despachoId   Int?      @map("despacho_id")
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
-  despacho     Despacho?     @relation(fields: [despachoId], references: [id])
-  actuaciones  Actuacion[]
+  despachos      UserDespacho[]
+  actuaciones    Actuacion[]
   notificaciones Notificacion[]
 
   @@map("users")
+}
+
+model UserDespacho {
+  userId    Int @map("user_id")
+  despachoId Int @map("despacho_id")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  despacho Despacho @relation(fields: [despachoId], references: [id], onDelete: Cascade)
+
+  @@id([userId, despachoId])
+  @@map("users_despachos")
 }
 
 model Despacho {
@@ -74,8 +84,8 @@ model Despacho {
   codigo    String   @unique
   createdAt DateTime @default(now()) @map("created_at")
 
-  usuarios  User[]
-  procesos  Proceso[]
+  usuarios UserDespacho[]
+  procesos Proceso[]
 
   @@map("despachos")
 }
