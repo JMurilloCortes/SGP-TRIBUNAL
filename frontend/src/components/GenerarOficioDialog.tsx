@@ -37,7 +37,7 @@ export default function GenerarOficioDialog({ open, procesoId, juzgadoOrigenId, 
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const esDevolver = modeloId === '1'
+  const esDevolver = Number(modeloId) === 1
 
   useEffect(() => {
     api.get('/oficios/modelos').then(r => setModelos(r.data))
