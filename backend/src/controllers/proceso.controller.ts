@@ -4,7 +4,7 @@ import { AuthRequest } from '../types'
 import { z } from 'zod'
 import { ColorEstado } from '@prisma/client'
 
-const createProcesoSchema = z.object({
+const baseProcesoSchema = z.object({
   radicado: z.string().min(1),
   demandante: z.string().min(1),
   demandado: z.string().min(1),
@@ -17,7 +17,13 @@ const createProcesoSchema = z.object({
   despachoActualId: z.number().int().positive(),
 })
 
-const updateProcesoSchema = createProcesoSchema.partial().extend({
+const createProcesoSchema = baseProcesoSchema.refine(data => {
+  if (data.instancia === 'SEGUNDA' && !data.juzgadoOrigenId) return false
+  if (data.instancia === 'PRIMERA' && data.juzgadoOrigenId) return false
+  return true
+}, { message: 'Si es segunda instancia debe indicar el juzgado de origen; si es primera no debe tenerlo' })
+
+const updateProcesoSchema = baseProcesoSchema.partial().extend({
   vigente: z.boolean().optional(),
   etapaActualId: z.number().int().positive().optional(),
   colorEstado: z.nativeEnum(ColorEstado).optional(),

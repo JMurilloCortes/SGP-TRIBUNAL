@@ -70,7 +70,7 @@ export default function ProcesoDetail() {
             <Typography variant="h6" gutterBottom>Información General</Typography>
             <Grid container spacing={2}>
               <Grid item xs={6}><Typography variant="body2" color="text.secondary">Radicado</Typography><Typography>{proceso.radicado}</Typography></Grid>
-              <Grid item xs={6}><Typography variant="body2" color="text.secondary">Instancia</Typography><Typography>{proceso.instancia === 'PRIMERA' ? 'Primera Instancia' : 'Segunda Instancia'}</Typography></Grid>
+              <Grid item xs={6}><Typography variant="body2" color="text.secondary">Instancia</Typography><Typography>{proceso.instancia === 'PRIMERA' ? 'Primera Instancia (nace en el Tribunal)' : 'Segunda Instancia (viene de un Juzgado)'}</Typography></Grid>
               <Grid item xs={6}><Typography variant="body2" color="text.secondary">Demandante</Typography><Typography>{proceso.demandante}</Typography></Grid>
               <Grid item xs={6}><Typography variant="body2" color="text.secondary">Demandado</Typography><Typography>{proceso.demandado}</Typography></Grid>
               <Grid item xs={4}><Typography variant="body2" color="text.secondary">Clase</Typography><Typography>{proceso.claseProceso?.nombre}</Typography></Grid>

@@ -139,9 +139,13 @@ export default function ProcesoForm() {
                 <FormControl fullWidth required>
                   <InputLabel>Instancia</InputLabel>
                   <Select value={form.instancia} label="Instancia"
-                    onChange={e => update('instancia', e.target.value as 'PRIMERA' | 'SEGUNDA')}>
-                    <MenuItem value="PRIMERA">Primera Instancia</MenuItem>
-                    <MenuItem value="SEGUNDA">Segunda Instancia</MenuItem>
+                    onChange={e => {
+                      const val = e.target.value as 'PRIMERA' | 'SEGUNDA'
+                      update('instancia', val)
+                      if (val === 'PRIMERA') update('juzgadoOrigenId', '')
+                    }}>
+                    <MenuItem value="PRIMERA">Primera Instancia (nace en el Tribunal)</MenuItem>
+                    <MenuItem value="SEGUNDA">Segunda Instancia (viene de un Juzgado)</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -171,16 +175,18 @@ export default function ProcesoForm() {
                   onChange={d => update('fechaSegundaInstancia', d)}
                   slotProps={{ textField: { fullWidth: true } }} />
               </Grid>
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Juzgado de origen</InputLabel>
-                  <Select value={form.juzgadoOrigenId} label="Juzgado de origen"
-                    onChange={e => update('juzgadoOrigenId', e.target.value)}>
-                    <MenuItem value="">Ninguno</MenuItem>
-                    {juzgados.map(j => <MenuItem key={j.id} value={String(j.id)}>{j.nombre}</MenuItem>)}
-                  </Select>
-                </FormControl>
-              </Grid>
+              {form.instancia === 'SEGUNDA' && (
+                <Grid item xs={12} md={4}>
+                  <FormControl fullWidth required>
+                    <InputLabel>Juzgado de origen</InputLabel>
+                    <Select value={form.juzgadoOrigenId} label="Juzgado de origen"
+                      onChange={e => update('juzgadoOrigenId', e.target.value)}>
+                      <MenuItem value="">Seleccione...</MenuItem>
+                      {juzgados.map(j => <MenuItem key={j.id} value={String(j.id)}>{j.nombre}</MenuItem>)}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              )}
               <Grid item xs={12} md={4}>
                 <FormControl fullWidth required>
                   <InputLabel>Clase de proceso</InputLabel>
