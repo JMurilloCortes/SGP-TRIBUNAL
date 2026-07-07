@@ -182,12 +182,13 @@ export async function remove(req: AuthRequest, res: Response) {
 
   const user = await prisma.user.findUnique({ where: { id } })
   if (!user) return res.status(404).json({ message: 'Usuario no encontrado' })
-  if (user.rol === 'ADMIN') return res.status(400).json({ message: 'No se puede desactivar un administrador' })
+  if (user.rol === 'ADMIN') return res.status(400).json({ message: 'No se puede eliminar un administrador' })
 
-  await prisma.user.update({
-    where: { id },
-    data: { activo: false },
-  })
+  // Eliminar registros relacionados
+  await prisma.notificacion.deleteMany({ where: { userId: id } })
+  await prisma.actuacion.deleteMany({ where: { userId: id } })
+  await prisma.userDespacho.deleteMany({ where: { userId: id } })
+  await prisma.user.delete({ where: { id } })
 
-  return res.json({ message: 'Usuario desactivado' })
+  return res.json({ message: 'Usuario eliminado permanentemente' })
 }

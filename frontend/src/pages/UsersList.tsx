@@ -4,7 +4,7 @@ import {
   Box, Typography, Paper, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, Chip, IconButton, Button,
 } from '@mui/material'
-import { Add, Edit, PersonOff, Visibility } from '@mui/icons-material'
+import { Add, Edit, Delete, Visibility } from '@mui/icons-material'
 import api from '../services/api'
 import type { User } from '../types'
 
@@ -16,10 +16,10 @@ export default function UsersList() {
     api.get('/users').then(r => setUsers(r.data))
   }, [])
 
-  async function handleDesactivar(id: number) {
-    if (!confirm('¿Desactivar este usuario?')) return
+  async function handleEliminar(id: number, nombre: string) {
+    if (!confirm(`¿Eliminar permanentemente al usuario "${nombre}"? Esta acción no se puede deshacer.`)) return
     await api.delete(`/users/${id}`)
-    setUsers(prev => prev.map(u => u.id === id ? { ...u, activo: false } : u))
+    setUsers(prev => prev.filter(u => u.id !== id))
   }
 
   return (
@@ -68,9 +68,9 @@ export default function UsersList() {
                   <IconButton onClick={() => navigate(`/usuarios/${u.id}/editar`)} title="Editar">
                     <Edit />
                   </IconButton>
-                  {u.rol !== 'ADMIN' && u.activo && (
-                    <IconButton onClick={() => handleDesactivar(u.id)} color="error" title="Desactivar">
-                      <PersonOff />
+                  {u.rol !== 'ADMIN' && (
+                    <IconButton onClick={() => handleEliminar(u.id, u.nombre)} color="error" title="Eliminar">
+                      <Delete />
                     </IconButton>
                   )}
                 </TableCell>
