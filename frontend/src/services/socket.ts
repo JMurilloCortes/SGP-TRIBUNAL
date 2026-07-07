@@ -1,14 +1,16 @@
 import { io, Socket } from 'socket.io-client'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
-
 let socket: Socket | null = null
 
 export function connectSocket(token: string) {
   if (socket?.connected) return socket
-  socket = io(API_URL, {
+  socket = io('/', {
     auth: { token },
     transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionAttempts: Infinity,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
   })
   return socket
 }
