@@ -52,6 +52,7 @@ async function main() {
   await prisma.userDespacho.createMany({
     data: [
       { userId: esc1.id, despachoId: d3.id },
+      { userId: esc1.id, despachoId: d4.id },
       { userId: esc2.id, despachoId: d2.id },
       { userId: esc3.id, despachoId: d1.id },
       { userId: esc3.id, despachoId: d5.id },
@@ -147,7 +148,7 @@ async function main() {
   console.log(`- ${despachos.length} despachos`)
   console.log(`- ${juzgados.length} juzgados administrativos`)
   console.log(`- 1 admin + 3 escribientes + 2 notificadores`)
-  console.log('  Merly Esmeralda Mosquera Garcia → D003')
+  console.log('  Merly Esmeralda Mosquera Garcia → D003, D004')
   console.log('  Marcel Caballero Palacios       → D002')
   console.log('  Libia Marcella Salamandra Pacheco → D001, D005')
   console.log('  Eleazar Ortiz Beytar            → Notificador (todos los despachos)')
