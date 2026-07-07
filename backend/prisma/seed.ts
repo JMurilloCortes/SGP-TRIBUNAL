@@ -25,70 +25,46 @@ async function main() {
     },
   })
 
-  // === 3 ESCRIBIENTES ===
-  // Escribiente 1: 2 despachos (D001, D002)
-  const esc1Hash = await bcrypt.hash('escribiente1', 10)
-  const esc1 = await prisma.user.upsert({
-    where: { email: 'andres.garcia@tribunalchoco.gov.co' },
-    update: {},
-    create: {
-      nombre: 'Andrés García',
-      email: 'andres.garcia@tribunalchoco.gov.co',
-      passwordHash: esc1Hash,
-      rol: Rol.ESCRIBIENTE,
-    },
+  // === USUARIOS (sin Admin) ===
+  await prisma.userDespacho.deleteMany()
+  await prisma.user.deleteMany({ where: { rol: { in: ['ESCRIBIENTE', 'NOTIFICADOR'] } } })
+
+  // 3 ESCRIBIENTES
+  const esc1 = await prisma.user.create({
+    data: { nombre: 'Merly Esmeralda Mosquera Garcia', email: 'mmosqueg@cendoj.ramajudicial.gov.co', passwordHash: await bcrypt.hash('Merly.123', 10), rol: Rol.ESCRIBIENTE },
+  })
+  const esc2 = await prisma.user.create({
+    data: { nombre: 'Marcel Caballero Palacios', email: 'mcaballp@cendoj.ramajudicial.gov.co', passwordHash: await bcrypt.hash('Marcel.123', 10), rol: Rol.ESCRIBIENTE },
+  })
+  const esc3 = await prisma.user.create({
+    data: { nombre: 'Libia Marcella Salamandra Pacheco', email: 'lsalamap@cendoj.ramajudicial.gov.co', passwordHash: await bcrypt.hash('Libia.123', 10), rol: Rol.ESCRIBIENTE },
   })
 
-  // Escribiente 2: 2 despachos (D003, D004)
-  const esc2Hash = await bcrypt.hash('escribiente2', 10)
-  const esc2 = await prisma.user.upsert({
-    where: { email: 'maria.lopez@tribunalchoco.gov.co' },
-    update: {},
-    create: {
-      nombre: 'María López',
-      email: 'maria.lopez@tribunalchoco.gov.co',
-      passwordHash: esc2Hash,
-      rol: Rol.ESCRIBIENTE,
-    },
+  // 2 NOTIFICADORES
+  const not1 = await prisma.user.create({
+    data: { nombre: 'Eleazar Ortiz Beytar', email: 'eortizb@cendoj.ramajudicial.gov.co', passwordHash: await bcrypt.hash('Eleazar.123', 10), rol: Rol.NOTIFICADOR },
   })
-
-  // Escribiente 3: 1 despacho (D005)
-  const esc3Hash = await bcrypt.hash('escribiente3', 10)
-  const esc3 = await prisma.user.upsert({
-    where: { email: 'carlos.perez@tribunalchoco.gov.co' },
-    update: {},
-    create: {
-      nombre: 'Carlos Pérez',
-      email: 'carlos.perez@tribunalchoco.gov.co',
-      passwordHash: esc3Hash,
-      rol: Rol.ESCRIBIENTE,
-    },
+  const not2 = await prisma.user.create({
+    data: { nombre: 'Aura Maria Mena Mosquera', email: 'amenam@cendoj.ramajudicial.gov.co', passwordHash: await bcrypt.hash('Aura.123', 10), rol: Rol.NOTIFICADOR },
   })
 
   // === ASIGNACIONES (users_despachos) ===
-  // Limpiar asignaciones existentes
-  await prisma.userDespacho.deleteMany()
-
-  // Escribiente 1 → D001, D002
   await prisma.userDespacho.createMany({
     data: [
-      { userId: esc1.id, despachoId: despachos[0].id },
-      { userId: esc1.id, despachoId: despachos[1].id },
-    ],
-  })
-
-  // Escribiente 2 → D003, D004
-  await prisma.userDespacho.createMany({
-    data: [
-      { userId: esc2.id, despachoId: despachos[2].id },
-      { userId: esc2.id, despachoId: despachos[3].id },
-    ],
-  })
-
-  // Escribiente 3 → D005
-  await prisma.userDespacho.createMany({
-    data: [
-      { userId: esc3.id, despachoId: despachos[4].id },
+      { userId: esc1.id, despachoId: d3.id },
+      { userId: esc2.id, despachoId: d2.id },
+      { userId: esc3.id, despachoId: d1.id },
+      { userId: esc3.id, despachoId: d5.id },
+      { userId: not1.id, despachoId: d1.id },
+      { userId: not1.id, despachoId: d2.id },
+      { userId: not1.id, despachoId: d3.id },
+      { userId: not1.id, despachoId: d4.id },
+      { userId: not1.id, despachoId: d5.id },
+      { userId: not2.id, despachoId: d1.id },
+      { userId: not2.id, despachoId: d2.id },
+      { userId: not2.id, despachoId: d3.id },
+      { userId: not2.id, despachoId: d4.id },
+      { userId: not2.id, despachoId: d5.id },
     ],
   })
 
@@ -170,43 +146,12 @@ async function main() {
   console.log('Seed ejecutado correctamente')
   console.log(`- ${despachos.length} despachos`)
   console.log(`- ${juzgados.length} juzgados administrativos`)
-  // === 2 NOTIFICADORES (notifican todos los despachos) ===
-  const not1Hash = await bcrypt.hash('notificador1', 10)
-  const not1 = await prisma.user.upsert({
-    where: { email: 'juan.notificador@tribunalchoco.gov.co' },
-    update: {},
-    create: {
-      nombre: 'Juan Martínez',
-      email: 'juan.notificador@tribunalchoco.gov.co',
-      passwordHash: not1Hash,
-      rol: 'NOTIFICADOR' as any,
-    },
-  })
-  for (const d of despachos) {
-    await prisma.userDespacho.upsert({ where: { userId_despachoId: { userId: not1.id, despachoId: d.id } }, update: {}, create: { userId: not1.id, despachoId: d.id } })
-  }
-
-  const not2Hash = await bcrypt.hash('notificador2', 10)
-  const not2 = await prisma.user.upsert({
-    where: { email: 'maria.rodriguez@tribunalchoco.gov.co' },
-    update: {},
-    create: {
-      nombre: 'María Rodríguez',
-      email: 'maria.rodriguez@tribunalchoco.gov.co',
-      passwordHash: not2Hash,
-      rol: 'NOTIFICADOR' as any,
-    },
-  })
-  for (const d of despachos) {
-    await prisma.userDespacho.upsert({ where: { userId_despachoId: { userId: not2.id, despachoId: d.id } }, update: {}, create: { userId: not2.id, despachoId: d.id } })
-  }
-
   console.log(`- 1 admin + 3 escribientes + 2 notificadores`)
-  console.log('  Andrés García   → D001, D002')
-  console.log('  María López     → D003, D004')
-  console.log('  Carlos Pérez    → D005')
-  console.log('  Juan Martínez   → Notificador (todos los despachos)')
-  console.log('  María Rodríguez → Notificador (todos los despachos)')
+  console.log('  Merly Esmeralda Mosquera Garcia → D003')
+  console.log('  Marcel Caballero Palacios       → D002')
+  console.log('  Libia Marcella Salamandra Pacheco → D001, D005')
+  console.log('  Eleazar Ortiz Beytar            → Notificador (todos los despachos)')
+  console.log('  Aura Maria Mena Mosquera        → Notificador (todos los despachos)')
 }
 
 main()
