@@ -26,6 +26,7 @@ export default function ProcesoList() {
   const [search, setSearch] = useState('')
   const [filtroEtapa, setFiltroEtapa] = useState('')
   const [filtroDespacho, setFiltroDespacho] = useState('')
+  const [filtroColor, setFiltroColor] = useState('')
   const [despachos, setDespachos] = useState<Despacho[]>([])
   const [etapas, setEtapas] = useState<Etapa[]>([])
 
@@ -39,6 +40,7 @@ export default function ProcesoList() {
     if (search) params.set('search', search)
     if (filtroEtapa) params.set('etapa', filtroEtapa)
     if (filtroDespacho) params.set('despacho', filtroDespacho)
+    if (filtroColor) params.set('color', filtroColor)
     params.set('page', String(page + 1))
     params.set('limit', String(rowsPerPage))
 
@@ -46,7 +48,7 @@ export default function ProcesoList() {
       setProcesos(r.data.data)
       setTotal(r.data.total)
     })
-  }, [page, rowsPerPage, search, filtroEtapa, filtroDespacho])
+  }, [page, rowsPerPage, search, filtroEtapa, filtroDespacho, filtroColor])
 
   return (
     <Box>
@@ -74,12 +76,28 @@ export default function ProcesoList() {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={6} md={3}>
+          <Grid item xs={6} md={2}>
             <FormControl fullWidth size="small">
               <InputLabel>Despacho</InputLabel>
               <Select value={filtroDespacho} label="Despacho" onChange={e => { setFiltroDespacho(e.target.value); setPage(0) }}>
                 <MenuItem value="">Todos</MenuItem>
                 {despachos.map(d => <MenuItem key={d.id} value={d.id}>{d.nombre}</MenuItem>)}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={6} md={2}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Estado</InputLabel>
+              <Select value={filtroColor} label="Estado" onChange={e => { setFiltroColor(e.target.value); setPage(0) }}>
+                <MenuItem value="">Todos</MenuItem>
+                {Object.entries(colorMap).map(([key, v]) => (
+                  <MenuItem key={key} value={key}>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: v.color }} />
+                      {v.label}
+                    </Box>
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </Grid>
