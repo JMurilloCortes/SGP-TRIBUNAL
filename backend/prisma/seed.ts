@@ -144,6 +144,18 @@ async function main() {
     })
   }
 
+  // === CONSECUTIVOS (0001–3500) ===
+  const existing = await prisma.consecutivo.count()
+  if (existing === 0) {
+    const data = Array.from({ length: 3500 }, (_, i) => ({
+      numero: String(i + 1).padStart(4, '0'),
+    }))
+    await prisma.consecutivo.createMany({ data })
+    console.log(`- ${data.length} consecutivos (0001–3500)`)
+  } else {
+    console.log(`- ${existing} consecutivos (ya existían)`)
+  }
+
   console.log('Seed ejecutado correctamente')
   console.log(`- ${despachos.length} despachos`)
   console.log(`- ${juzgados.length} juzgados administrativos`)

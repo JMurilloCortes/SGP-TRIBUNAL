@@ -7,7 +7,7 @@ import {
 } from '@mui/material'
 import {
   Menu as MenuIcon, Dashboard, Gavel, Logout,
-  Person, AddCircle, Notifications as NotificationsIcon,
+  Person, AddCircle, Notifications as NotificationsIcon, GridOn,
 } from '@mui/icons-material'
 import { useAuth } from '../context/AuthContext'
 import NotificationBell from './NotificationPanel'
@@ -29,6 +29,7 @@ export default function Layout() {
           { text: 'Procesos', icon: <Gavel />, path: '/procesos' },
         ]),
     { text: 'Notificaciones', icon: <NotificationsIcon />, path: '/notificaciones' },
+    { text: 'Consecutivos', icon: <GridOn />, path: '/consecutivos' },
     ...(user?.rol === 'ADMIN' ? [{ text: 'Usuarios', icon: <Person />, path: '/usuarios' }] : []),
   ]
 

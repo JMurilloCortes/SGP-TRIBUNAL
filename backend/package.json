@@ -19,6 +19,7 @@
     "express": "^4.21.0",
     "jsonwebtoken": "^9.0.2",
     "node-cron": "^3.0.3",
+    "socket.io": "^4.8.3",
     "zod": "^3.24.0"
   },
   "devDependencies": {
