@@ -189,10 +189,16 @@ export async function toggleEstado(req: AuthRequest, res: Response) {
     data: { activo: !user.activo },
     select: {
       id: true, nombre: true, email: true, rol: true, activo: true, createdAt: true,
+      despachos: {
+        include: { despacho: { select: { id: true, nombre: true, codigo: true } } },
+      },
     },
   })
 
-  return res.json(updated)
+  return res.json({
+    ...updated,
+    despachos: updated.despachos.map(d => d.despacho),
+  })
 }
 
 export async function remove(req: AuthRequest, res: Response) {
