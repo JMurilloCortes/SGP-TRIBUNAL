@@ -25,6 +25,7 @@ export default function Layout() {
     { text: 'Registrar Proceso', icon: <AddCircle />, path: '/procesos/nuevo' },
     { text: 'Procesos', icon: <Gavel />, path: '/procesos' },
     { text: 'Notificaciones', icon: <NotificationsIcon />, path: '/notificaciones' },
+    ...(user?.rol === 'ADMIN' ? [{ text: 'Usuarios', icon: <Person />, path: '/usuarios' }] : []),
   ]
 
   const drawer = (

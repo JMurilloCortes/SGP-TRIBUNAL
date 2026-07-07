@@ -8,6 +8,9 @@ import ProcesoList from './pages/ProcesoList'
 import ProcesoForm from './pages/ProcesoForm'
 import ProcesoDetail from './pages/ProcesoDetail'
 import NotificacionesPage from './pages/NotificacionesPage'
+import UsersList from './pages/UsersList'
+import UserForm from './pages/UserForm'
+import UserDetail from './pages/UserDetail'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -43,6 +46,10 @@ export default function App() {
         <Route path="/procesos/:id" element={<ProcesoDetail />} />
         <Route path="/procesos/:id/editar" element={<ProcesoForm />} />
         <Route path="/notificaciones" element={<NotificacionesPage />} />
+        <Route path="/usuarios" element={<UsersList />} />
+        <Route path="/usuarios/nuevo" element={<UserForm />} />
+        <Route path="/usuarios/:id" element={<UserDetail />} />
+        <Route path="/usuarios/:id/editar" element={<UserForm />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
