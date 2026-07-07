@@ -57,16 +57,21 @@ export async function list(req: AuthRequest, res: Response) {
   const [data, total] = await Promise.all([
     prisma.proceso.findMany({
       where,
-      include: {
-        claseProceso: true,
-        etapaActual: true,
-        despachoActual: true,
-        juzgadoOrigen: true,
-        terminos: {
-          where: { estado: 'PENDIENTE' },
-          take: 1,
-          orderBy: { fechaVencimiento: 'asc' },
-        },
+      select: {
+        id: true,
+        radicado: true,
+        demandante: true,
+        demandado: true,
+        instancia: true,
+        colorEstado: true,
+        vigente: true,
+        createdAt: true,
+        despachoActualId: true,
+        etapaActualId: true,
+        claseProceso: { select: { id: true, nombre: true } },
+        etapaActual: { select: { id: true, nombre: true } },
+        despachoActual: { select: { id: true, nombre: true, codigo: true } },
+        juzgadoOrigen: { select: { id: true, nombre: true, codigo: true } },
       },
       orderBy: { createdAt: 'desc' },
       skip,

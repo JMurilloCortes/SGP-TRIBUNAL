@@ -152,6 +152,14 @@ model Proceso {
   notificaciones  Notificacion[]
   actuaciones     Actuacion[]
 
+  @@index([radicado])
+  @@index([demandante])
+  @@index([demandado])
+  @@index([despachoActualId])
+  @@index([etapaActualId])
+  @@index([colorEstado])
+  @@index([vigente])
+
   @@map("procesos")
 }
 

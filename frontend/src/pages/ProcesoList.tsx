@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box, Typography, TextField, Select, MenuItem, FormControl, InputLabel,
@@ -24,11 +24,13 @@ export default function ProcesoList() {
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(20)
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [filtroEtapa, setFiltroEtapa] = useState('')
   const [filtroDespacho, setFiltroDespacho] = useState('')
   const [filtroColor, setFiltroColor] = useState('')
   const [despachos, setDespachos] = useState<Despacho[]>([])
   const [etapas, setEtapas] = useState<Etapa[]>([])
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   useEffect(() => {
     api.get('/catalogos/despachos').then(r => setDespachos(r.data))
@@ -36,8 +38,14 @@ export default function ProcesoList() {
   }, [])
 
   useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => setDebouncedSearch(search), 300)
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [search])
+
+  useEffect(() => {
     const params = new URLSearchParams()
-    if (search) params.set('search', search)
+    if (debouncedSearch) params.set('search', debouncedSearch)
     if (filtroEtapa) params.set('etapa', filtroEtapa)
     if (filtroDespacho) params.set('despacho', filtroDespacho)
     if (filtroColor) params.set('color', filtroColor)
@@ -48,7 +56,7 @@ export default function ProcesoList() {
       setProcesos(r.data.data)
       setTotal(r.data.total)
     })
-  }, [page, rowsPerPage, search, filtroEtapa, filtroDespacho, filtroColor])
+  }, [page, rowsPerPage, debouncedSearch, filtroEtapa, filtroDespacho, filtroColor])
 
   return (
     <Box>
