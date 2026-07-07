@@ -1,4 +1,5 @@
 import { prisma } from '../src/config/database'
+import { addBusinessDays, calcularColor } from '../src/services/termino.service'
 
 async function main() {
   await prisma.terminoProceso.deleteMany()
@@ -71,8 +72,7 @@ async function main() {
   for (const prv of providenciasData) {
     const proc = getProc(prv.radicado)
     const fechaProv = prv.fechaNotificacion
-    const fechaVen = new Date(fechaProv)
-    fechaVen.setDate(fechaVen.getDate() + prv.diasTermino * 2)
+    const fechaVen = addBusinessDays(fechaProv, prv.diasTermino)
     const p = await prisma.providencia.create({
       data: {
         procesoId: proc.id,
@@ -91,8 +91,20 @@ async function main() {
         fechaVencimiento: fechaVen,
       },
     })
-    console.log(`  ✓ Providencia: ${prv.descripcion} (${prv.diasTermino}d)`)
+    // Asignar color al proceso según el término más próximo
+    const color = calcularColor(fechaVen)
+    await prisma.proceso.update({
+      where: { id: proc.id },
+      data: { colorEstado: color },
+    })
+    console.log(`  ✓ Providencia: ${prv.descripcion} (${prv.diasTermino}d → ${color})`)
   }
+
+  // Archivados → GRIS y no vigentes
+  await prisma.proceso.updateMany({
+    where: { etapaActualId: etapaArchivado },
+    data: { colorEstado: 'GRIS', vigente: false },
+  })
 
   console.log(`\n✅ ${procesos.length} procesos y ${providenciasData.length} providencias creados`)
   await prisma.$disconnect()
