@@ -13,6 +13,12 @@ export interface Despacho {
   codigo: string
 }
 
+export interface Juzgado {
+  id: number
+  nombre: string
+  codigo: string
+}
+
 export interface Proceso {
   id: number
   radicado: string
@@ -22,7 +28,8 @@ export interface Proceso {
   fechaIngresoTribunal: string
   fechaPrimeraInstancia: string | null
   fechaSegundaInstancia: string | null
-  juzgadoOrigen: string | null
+  juzgadoOrigenId: number | null
+  juzgadoOrigen?: Juzgado
   vigente: boolean
   colorEstado: 'VERDE' | 'AMARILLO' | 'NARANJA' | 'ROJO' | 'GRIS'
   despachoActualId: number

@@ -78,7 +78,7 @@ export default function ProcesoDetail() {
               <Grid item xs={4}><Typography variant="body2" color="text.secondary">Etapa</Typography><Chip label={proceso.etapaActual?.nombre} color="primary" size="small" /></Grid>
               <Grid item xs={4}><Typography variant="body2" color="text.secondary">Estado</Typography><Chip label={colorMap[proceso.colorEstado]?.label} sx={{ bgcolor: colorMap[proceso.colorEstado]?.color, color: '#fff' }} size="small" /></Grid>
               <Grid item xs={4}><Typography variant="body2" color="text.secondary">Fecha Ingreso</Typography><Typography>{new Date(proceso.fechaIngresoTribunal).toLocaleDateString('es-CO')}</Typography></Grid>
-              {proceso.juzgadoOrigen && <Grid item xs={4}><Typography variant="body2" color="text.secondary">Juzgado Origen</Typography><Typography>{proceso.juzgadoOrigen}</Typography></Grid>}
+              {proceso.juzgadoOrigen && <Grid item xs={4}><Typography variant="body2" color="text.secondary">Juzgado Origen</Typography><Typography>{proceso.juzgadoOrigen.nombre}</Typography></Grid>}
             </Grid>
           </Paper>
         </Grid>

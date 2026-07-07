@@ -9,7 +9,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3'
 import { es } from 'date-fns/locale/es'
 import api from '../services/api'
-import type { Despacho, ClaseProceso } from '../types'
+import type { Despacho, ClaseProceso, Juzgado } from '../types'
 
 interface FormData {
   radicado: string
@@ -19,7 +19,7 @@ interface FormData {
   fechaIngresoTribunal: Date | null
   fechaPrimeraInstancia: Date | null
   fechaSegundaInstancia: Date | null
-  juzgadoOrigen: string
+  juzgadoOrigenId: string
   claseProcesoId: string
   despachoActualId: string
 }
@@ -32,7 +32,7 @@ const initialForm: FormData = {
   fechaIngresoTribunal: new Date(),
   fechaPrimeraInstancia: null,
   fechaSegundaInstancia: null,
-  juzgadoOrigen: '',
+  juzgadoOrigenId: '',
   claseProcesoId: '',
   despachoActualId: '',
 }
@@ -44,6 +44,7 @@ export default function ProcesoForm() {
   const [form, setForm] = useState<FormData>(initialForm)
   const [despachos, setDespachos] = useState<Despacho[]>([])
   const [clases, setClases] = useState<ClaseProceso[]>([])
+  const [juzgados, setJuzgados] = useState<Juzgado[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(isEdit)
@@ -52,9 +53,11 @@ export default function ProcesoForm() {
     Promise.all([
       api.get('/catalogos/despachos'),
       api.get('/catalogos/clases-proceso'),
-    ]).then(([d, c]) => {
+      api.get('/catalogos/juzgados'),
+    ]).then(([d, c, j]) => {
       setDespachos(d.data)
       setClases(c.data)
+      setJuzgados(j.data)
     })
   }, [])
 
@@ -70,7 +73,7 @@ export default function ProcesoForm() {
         fechaIngresoTribunal: new Date(p.fechaIngresoTribunal),
         fechaPrimeraInstancia: p.fechaPrimeraInstancia ? new Date(p.fechaPrimeraInstancia) : null,
         fechaSegundaInstancia: p.fechaSegundaInstancia ? new Date(p.fechaSegundaInstancia) : null,
-        juzgadoOrigen: p.juzgadoOrigen || '',
+        juzgadoOrigenId: p.juzgadoOrigenId ? String(p.juzgadoOrigenId) : '',
         claseProcesoId: String(p.claseProcesoId),
         despachoActualId: String(p.despachoActualId),
       })
@@ -96,7 +99,7 @@ export default function ProcesoForm() {
         fechaIngresoTribunal: form.fechaIngresoTribunal?.toISOString(),
         fechaPrimeraInstancia: form.fechaPrimeraInstancia?.toISOString() || null,
         fechaSegundaInstancia: form.fechaSegundaInstancia?.toISOString() || null,
-        juzgadoOrigen: form.juzgadoOrigen || null,
+        juzgadoOrigenId: form.juzgadoOrigenId ? parseInt(form.juzgadoOrigenId) : null,
         claseProcesoId: parseInt(form.claseProcesoId),
         despachoActualId: parseInt(form.despachoActualId),
       }
@@ -169,8 +172,14 @@ export default function ProcesoForm() {
                   slotProps={{ textField: { fullWidth: true } }} />
               </Grid>
               <Grid item xs={12} md={4}>
-                <TextField fullWidth label="Juzgado de origen"
-                  value={form.juzgadoOrigen} onChange={e => update('juzgadoOrigen', e.target.value)} />
+                <FormControl fullWidth>
+                  <InputLabel>Juzgado de origen</InputLabel>
+                  <Select value={form.juzgadoOrigenId} label="Juzgado de origen"
+                    onChange={e => update('juzgadoOrigenId', e.target.value)}>
+                    <MenuItem value="">Ninguno</MenuItem>
+                    {juzgados.map(j => <MenuItem key={j.id} value={String(j.id)}>{j.nombre}</MenuItem>)}
+                  </Select>
+                </FormControl>
               </Grid>
               <Grid item xs={12} md={4}>
                 <FormControl fullWidth required>

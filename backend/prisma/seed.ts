@@ -5,13 +5,12 @@ const prisma = new PrismaClient()
 
 async function main() {
   // === 5 DESPACHOS ===
-  const despachos = await Promise.all([
-    prisma.despacho.upsert({ where: { codigo: 'D001' }, update: {}, create: { nombre: 'Despacho 001', codigo: 'D001' } }),
-    prisma.despacho.upsert({ where: { codigo: 'D002' }, update: {}, create: { nombre: 'Despacho 002', codigo: 'D002' } }),
-    prisma.despacho.upsert({ where: { codigo: 'D003' }, update: {}, create: { nombre: 'Despacho 003', codigo: 'D003' } }),
-    prisma.despacho.upsert({ where: { codigo: 'D004' }, update: {}, create: { nombre: 'Despacho 004', codigo: 'D004' } }),
-    prisma.despacho.upsert({ where: { codigo: 'D005' }, update: {}, create: { nombre: 'Despacho 005', codigo: 'D005' } }),
-  ])
+  const d1 = await prisma.despacho.upsert({ where: { codigo: 'D001' }, update: {}, create: { nombre: 'Despacho 001', codigo: 'D001' } })
+  const d2 = await prisma.despacho.upsert({ where: { codigo: 'D002' }, update: {}, create: { nombre: 'Despacho 002', codigo: 'D002' } })
+  const d3 = await prisma.despacho.upsert({ where: { codigo: 'D003' }, update: {}, create: { nombre: 'Despacho 003', codigo: 'D003' } })
+  const d4 = await prisma.despacho.upsert({ where: { codigo: 'D004' }, update: {}, create: { nombre: 'Despacho 004', codigo: 'D004' } })
+  const d5 = await prisma.despacho.upsert({ where: { codigo: 'D005' }, update: {}, create: { nombre: 'Despacho 005', codigo: 'D005' } })
+  const despachos = [d1, d2, d3, d4, d5]
 
   // === ADMIN ===
   const adminHash = await bcrypt.hash('admin123', 10)
@@ -93,6 +92,26 @@ async function main() {
     ],
   })
 
+  // === 9 JUZGADOS ADMINISTRATIVOS DE QUIBDÓ ===
+  const juzgados = [
+    { nombre: 'Juzgado 01 Administrativo de Quibdó', codigo: 'J01AQO' },
+    { nombre: 'Juzgado 02 Administrativo de Quibdó', codigo: 'J02AQO' },
+    { nombre: 'Juzgado 03 Administrativo de Quibdó', codigo: 'J03AQO' },
+    { nombre: 'Juzgado 04 Administrativo de Quibdó', codigo: 'J04AQO' },
+    { nombre: 'Juzgado 05 Administrativo de Quibdó', codigo: 'J05AQO' },
+    { nombre: 'Juzgado 06 Administrativo de Quibdó', codigo: 'J06AQO' },
+    { nombre: 'Juzgado 07 Administrativo de Quibdó', codigo: 'J07AQO' },
+    { nombre: 'Juzgado 08 Administrativo de Quibdó', codigo: 'J08AQO' },
+    { nombre: 'Juzgado 09 Administrativo de Quibdó', codigo: 'J09AQO' },
+  ]
+  for (const j of juzgados) {
+    await prisma.juzgado.upsert({
+      where: { codigo: j.codigo },
+      update: {},
+      create: j,
+    })
+  }
+
   // === CLASES DE PROCESO ===
   const clases = [
     'Nulidad',
@@ -150,6 +169,7 @@ async function main() {
 
   console.log('Seed ejecutado correctamente')
   console.log(`- ${despachos.length} despachos`)
+  console.log(`- ${juzgados.length} juzgados administrativos`)
   console.log(`- 1 admin + 3 escribientes`)
   console.log('  Andrés García → D001, D002')
   console.log('  María López   → D003, D004')

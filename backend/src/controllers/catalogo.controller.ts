@@ -20,3 +20,8 @@ export async function getTiposProvidencia(_req: any, res: Response) {
   const data = await prisma.tipoProvidencia.findMany({ orderBy: { nombre: 'asc' } })
   return res.json(data)
 }
+
+export async function getJuzgados(_req: any, res: Response) {
+  const data = await prisma.juzgado.findMany({ orderBy: { nombre: 'asc' } })
+  return res.json(data)
+}

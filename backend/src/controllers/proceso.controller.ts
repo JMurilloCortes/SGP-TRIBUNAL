@@ -12,7 +12,7 @@ const createProcesoSchema = z.object({
   fechaIngresoTribunal: z.string(),
   fechaPrimeraInstancia: z.string().nullable().optional(),
   fechaSegundaInstancia: z.string().nullable().optional(),
-  juzgadoOrigen: z.string().nullable().optional(),
+  juzgadoOrigenId: z.number().int().positive().nullable().optional(),
   claseProcesoId: z.number().int().positive(),
   despachoActualId: z.number().int().positive(),
 })
@@ -55,6 +55,7 @@ export async function list(req: AuthRequest, res: Response) {
         claseProceso: true,
         etapaActual: true,
         despachoActual: true,
+        juzgadoOrigen: true,
         terminos: {
           where: { estado: 'PENDIENTE' },
           take: 1,
@@ -79,6 +80,7 @@ export async function getById(req: AuthRequest, res: Response) {
       claseProceso: true,
       etapaActual: true,
       despachoActual: true,
+      juzgadoOrigen: true,
       providencias: {
         include: { tipoProvidencia: true, terminos: true },
         orderBy: { createdAt: 'desc' },
@@ -114,7 +116,7 @@ export async function create(req: AuthRequest, res: Response) {
       fechaIngresoTribunal: new Date(data.fechaIngresoTribunal),
       fechaPrimeraInstancia: data.fechaPrimeraInstancia ? new Date(data.fechaPrimeraInstancia) : null,
       fechaSegundaInstancia: data.fechaSegundaInstancia ? new Date(data.fechaSegundaInstancia) : null,
-      juzgadoOrigen: data.juzgadoOrigen ?? null,
+      juzgadoOrigenId: data.juzgadoOrigenId ?? null,
       claseProcesoId: data.claseProcesoId,
       despachoActualId: data.despachoActualId,
       etapaActualId: 1, // Radicado
@@ -156,7 +158,7 @@ export async function update(req: AuthRequest, res: Response) {
       ...(data.fechaIngresoTribunal !== undefined && { fechaIngresoTribunal: new Date(data.fechaIngresoTribunal) }),
       ...(data.fechaPrimeraInstancia !== undefined && { fechaPrimeraInstancia: data.fechaPrimeraInstancia ? new Date(data.fechaPrimeraInstancia) : null }),
       ...(data.fechaSegundaInstancia !== undefined && { fechaSegundaInstancia: data.fechaSegundaInstancia ? new Date(data.fechaSegundaInstancia) : null }),
-      ...(data.juzgadoOrigen !== undefined && { juzgadoOrigen: data.juzgadoOrigen }),
+      ...(data.juzgadoOrigenId !== undefined && { juzgadoOrigenId: data.juzgadoOrigenId }),
       ...(data.claseProcesoId !== undefined && { claseProcesoId: data.claseProcesoId }),
       ...(data.despachoActualId !== undefined && { despachoActualId: data.despachoActualId }),
       ...(data.etapaActualId !== undefined && { etapaActualId: data.etapaActualId }),

@@ -90,6 +90,17 @@ model Despacho {
   @@map("despachos")
 }
 
+model Juzgado {
+  id        Int      @id @default(autoincrement())
+  nombre    String   @unique
+  codigo    String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  procesos  Proceso[]
+
+  @@map("juzgados")
+}
+
 model ClaseProceso {
   id        Int      @id @default(autoincrement())
   nombre    String   @unique
@@ -121,7 +132,7 @@ model Proceso {
   fechaIngresoTribunal      DateTime    @map("fecha_ingreso_tribunal")
   fechaPrimeraInstancia     DateTime?   @map("fecha_primera_instancia")
   fechaSegundaInstancia     DateTime?   @map("fecha_segunda_instancia")
-  juzgadoOrigen             String?     @map("juzgado_origen")
+  juzgadoOrigenId           Int?        @map("juzgado_origen_id")
   vigente                   Boolean     @default(true)
   colorEstado               ColorEstado @default(VERDE) @map("color_estado")
   despachoActualId          Int         @map("despacho_actual_id")
@@ -130,13 +141,14 @@ model Proceso {
   createdAt                 DateTime    @default(now()) @map("created_at")
   updatedAt                 DateTime    @updatedAt @map("updated_at")
 
-  claseProceso      ClaseProceso      @relation(fields: [claseProcesoId], references: [id])
-  despachoActual    Despacho          @relation(fields: [despachoActualId], references: [id])
-  etapaActual       Etapa             @relation(fields: [etapaActualId], references: [id])
-  providencias      Providencia[]
-  terminos          TerminoProceso[]
-  notificaciones    Notificacion[]
-  actuaciones       Actuacion[]
+  juzgadoOrigen   Juzgado?          @relation(fields: [juzgadoOrigenId], references: [id])
+  claseProceso    ClaseProceso      @relation(fields: [claseProcesoId], references: [id])
+  despachoActual  Despacho          @relation(fields: [despachoActualId], references: [id])
+  etapaActual     Etapa             @relation(fields: [etapaActualId], references: [id])
+  providencias    Providencia[]
+  terminos        TerminoProceso[]
+  notificaciones  Notificacion[]
+  actuaciones     Actuacion[]
 
   @@map("procesos")
 }
