@@ -177,6 +177,24 @@ export async function updateDespachos(req: AuthRequest, res: Response) {
   })
 }
 
+export async function toggleEstado(req: AuthRequest, res: Response) {
+  const id = parseInt(req.params.id as string)
+
+  const user = await prisma.user.findUnique({ where: { id } })
+  if (!user) return res.status(404).json({ message: 'Usuario no encontrado' })
+  if (user.rol === 'ADMIN') return res.status(400).json({ message: 'No se puede cambiar el estado de un administrador' })
+
+  const updated = await prisma.user.update({
+    where: { id },
+    data: { activo: !user.activo },
+    select: {
+      id: true, nombre: true, email: true, rol: true, activo: true, createdAt: true,
+    },
+  })
+
+  return res.json(updated)
+}
+
 export async function remove(req: AuthRequest, res: Response) {
   const id = parseInt(req.params.id as string)
 

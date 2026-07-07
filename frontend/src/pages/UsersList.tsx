@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box, Typography, Paper, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, Chip, IconButton, Button,
+  TableContainer, TableHead, TableRow, Chip, IconButton, Button, Switch,
 } from '@mui/material'
 import { Add, Edit, Delete, Visibility } from '@mui/icons-material'
 import api from '../services/api'
@@ -15,6 +15,11 @@ export default function UsersList() {
   useEffect(() => {
     api.get('/users').then(r => setUsers(r.data))
   }, [])
+
+  async function handleToggleActivo(id: number) {
+    const res = await api.patch(`/users/${id}/estado`)
+    setUsers(prev => prev.map(u => u.id === id ? res.data : u))
+  }
 
   async function handleEliminar(id: number, nombre: string) {
     if (!confirm(`¿Eliminar permanentemente al usuario "${nombre}"? Esta acción no se puede deshacer.`)) return
@@ -58,8 +63,12 @@ export default function UsersList() {
                     : '-'}
                 </TableCell>
                 <TableCell>
-                  <Chip label={u.activo ? 'Activo' : 'Inactivo'}
-                    color={u.activo ? 'success' : 'error'} size="small" />
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <Switch checked={u.activo} disabled={u.rol === 'ADMIN'}
+                      onChange={() => handleToggleActivo(u.id)} size="small" />
+                    <Chip label={u.activo ? 'Activo' : 'Inactivo'}
+                      color={u.activo ? 'success' : 'error'} size="small" />
+                  </Box>
                 </TableCell>
                 <TableCell align="right">
                   <IconButton onClick={() => navigate(`/usuarios/${u.id}`)} title="Ver">
