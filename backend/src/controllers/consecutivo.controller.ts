@@ -5,6 +5,18 @@ import { AuthRequest } from '../types'
 
 const TIPOS = ['OFICIO', 'CIRCULAR', 'CITACION', 'RESOLUCION'] as const
 
+export async function proximoDisponible(req: AuthRequest, res: Response) {
+  const tipo = (String(req.query.tipo || 'OFICIO').toUpperCase())
+  const consecutivo = await prisma.consecutivo.findFirst({
+    where: { tipo: tipo as any, estado: 'DISPONIBLE' },
+    orderBy: { id: 'asc' },
+  })
+  if (!consecutivo) {
+    return res.status(404).json({ message: `No hay consecutivos ${tipo} disponibles` })
+  }
+  res.json(consecutivo)
+}
+
 export async function listar(req: Request, res: Response) {
   const tipo = (String(req.query.tipo || 'OFICIO').toUpperCase())
   const tipoValido = TIPOS.includes(tipo as any) ? tipo : 'OFICIO'

@@ -19,6 +19,7 @@ interface DatosOficio {
   asunto: string
   cuerpo?: string
   despachoOrigen?: string
+  numeroOficio?: string
 }
 
 function firma(): Paragraph[] {
@@ -31,10 +32,21 @@ function firma(): Paragraph[] {
 }
 
 function crearDocumento(datos: DatosOficio): Document {
+  const encabezado: Paragraph[] = []
+  if (datos.numeroOficio) {
+    encabezado.push(
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        children: [new TextRun({ text: `OFICIO NRO. ${datos.numeroOficio}`, font: 'Arial', size: 22, bold: true })],
+      }),
+      new Paragraph({ spacing: { after: 200 }, children: [new TextRun({ text: '', size: 22 })] }),
+    )
+  }
   return new Document({
     sections: [{
       properties: { page: { margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 } } },
       children: [
+        ...encabezado,
         new Paragraph({
           alignment: AlignmentType.RIGHT,
           children: [new TextRun({ text: `Quibdó, ${formatDate(datos.fecha)}`, font: 'Arial', size: 22 })],

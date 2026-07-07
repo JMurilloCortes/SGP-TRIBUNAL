@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField,
-  Select, MenuItem, FormControl, InputLabel, Alert,
+  Select, MenuItem, FormControl, InputLabel, Alert, Typography,
 } from '@mui/material'
 import api from '../services/api'
 
@@ -36,13 +36,18 @@ export default function GenerarOficioDialog({ open, procesoId, juzgadoOrigenId, 
   const [asunto, setAsunto] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [proximoConsecutivo, setProximoConsecutivo] = useState<{ id: number; numero: string } | null>(null)
 
   const esDevolver = Number(modeloId) === 1
 
   useEffect(() => {
+    if (!open) return
     api.get('/oficios/modelos').then(r => setModelos(r.data))
     api.get('/catalogos/juzgados').then(r => setJuzgados(r.data))
-  }, [])
+    api.get('/consecutivos/proximo?tipo=OFICIO')
+      .then(r => setProximoConsecutivo(r.data))
+      .catch(() => setProximoConsecutivo(null))
+  }, [open])
 
   useEffect(() => {
     if (!esDevolver || !juzgadoSel) return
@@ -73,6 +78,7 @@ export default function GenerarOficioDialog({ open, procesoId, juzgadoOrigenId, 
       const res = await api.post(`/oficios/${procesoId}/generar`, {
         modeloId: parseInt(modeloId),
         destinatario, cargo, entidad, direccion, asunto,
+        consecutivoId: proximoConsecutivo?.id,
       }, { responseType: 'blob' })
       const url = window.URL.createObjectURL(new Blob([res.data]))
       const link = document.createElement('a')
@@ -95,6 +101,15 @@ export default function GenerarOficioDialog({ open, procesoId, juzgadoOrigenId, 
       <DialogTitle>Generar Oficio</DialogTitle>
       <DialogContent>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {proximoConsecutivo ? (
+          <Typography variant="subtitle1" sx={{ mt: 1, fontWeight: 'bold', color: 'primary.main' }}>
+            Número de oficio asignado: {proximoConsecutivo.numero}
+          </Typography>
+        ) : (
+          <Typography variant="body2" sx={{ mt: 1, color: 'warning.main' }}>
+            No hay consecutivos de oficio disponibles
+          </Typography>
+        )}
         <FormControl fullWidth sx={{ mt: 1 }}>
           <InputLabel>Modelo de oficio</InputLabel>
           <Select value={modeloId} label="Modelo de oficio" onChange={e => setModeloId(e.target.value)}>
