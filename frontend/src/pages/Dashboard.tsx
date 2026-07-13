@@ -6,66 +6,184 @@ import {
   Chip, Avatar,
 } from '@mui/material'
 import {
-  Gavel, Schedule, CheckCircle, Warning, ArrowForward,
+  FolderOpen, Verified, Timer, GppBad, ArrowForward,
+  Badge, Business,
 } from '@mui/icons-material'
+import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 import type { Proceso } from '../types'
 
-const colorMap: Record<string, { label: string; color: string }> = {
-  VERDE: { label: 'Al día', color: '#2e7d32' },
-  AMARILLO: { label: 'Próximo a vencer', color: '#ed6c02' },
-  NARANJA: { label: 'Por vencer', color: '#e65100' },
-  ROJO: { label: 'Vencido', color: '#d32f2f' },
-  GRIS: { label: 'Archivado', color: '#757575' },
+const colorMap: Record<string, { label: string; color: string; bg: string }> = {
+  VERDE: { label: 'Al día', color: '#2D6B3F', bg: 'rgba(139,196,168,0.15)' },
+  AMARILLO: { label: 'Próximo a vencer', color: '#8A7530', bg: 'rgba(232,207,150,0.15)' },
+  NARANJA: { label: 'Por vencer', color: '#8A5A30', bg: 'rgba(232,207,150,0.15)' },
+  ROJO: { label: 'Vencido', color: '#8A3040', bg: 'rgba(232,168,176,0.15)' },
+  GRIS: { label: 'Archivado', color: '#5A5868', bg: 'rgba(155,142,216,0.1)' },
 }
 
 interface Resumen {
   total: number
-  alDia: number
+  activos: number
   porVencer: number
   vencidos: number
+  archivados: number
 }
 
 const statCards = [
-  { key: 'total', label: 'Total Procesos', icon: <Gavel sx={{ fontSize: 28 }} />, color: '#0d1b4a', bg: 'rgba(13,27,74,0.08)' },
-  { key: 'alDia', label: 'Al día', icon: <CheckCircle sx={{ fontSize: 28 }} />, color: '#2e7d32', bg: 'rgba(46,125,50,0.08)' },
-  { key: 'porVencer', label: 'Por vencer', icon: <Schedule sx={{ fontSize: 28 }} />, color: '#ed6c02', bg: 'rgba(237,108,2,0.08)' },
-  { key: 'vencidos', label: 'Vencidos', icon: <Warning sx={{ fontSize: 28 }} />, color: '#c62828', bg: 'rgba(198,40,40,0.08)' },
+  {
+    key: 'total', label: 'Total Procesos', icon: <FolderOpen sx={{ fontSize: 28 }} />,
+    gradient: 'linear-gradient(135deg, #9B8ED8 0%, #B8ADE8 100%)',
+    bg: 'rgba(155,142,216,0.08)',
+    color: '#7B6FC0',
+  },
+  {
+    key: 'activos', label: 'Activos', icon: <Verified sx={{ fontSize: 28 }} />,
+    gradient: 'linear-gradient(135deg, #8BC4A8 0%, #A8D5BA 100%)',
+    bg: 'rgba(139,196,168,0.08)',
+    color: '#5A9E7A',
+  },
+  {
+    key: 'porVencer', label: 'Por vencer', icon: <Timer sx={{ fontSize: 28 }} />,
+    gradient: 'linear-gradient(135deg, #E8CF96 0%, #F0DDB0 100%)',
+    bg: 'rgba(232,207,150,0.08)',
+    color: '#C4A858',
+  },
+  {
+    key: 'vencidos', label: 'Vencidos', icon: <GppBad sx={{ fontSize: 28 }} />,
+    gradient: 'linear-gradient(135deg, #E8A8B0 0%, #F0C0C6 100%)',
+    bg: 'rgba(232,168,176,0.08)',
+    color: '#C4707A',
+  },
 ]
+
+const rolLabels: Record<string, string> = {
+  ADMIN: 'Administrador',
+  ESCRIBIENTE: 'Escribiente',
+  NOTIFICADOR: 'Notificador',
+}
 
 export default function Dashboard() {
   const navigate = useNavigate()
-  const [resumen, setResumen] = useState<Resumen>({ total: 0, alDia: 0, porVencer: 0, vencidos: 0 })
+  const { user } = useAuth()
+  const [resumen, setResumen] = useState<Resumen>({ total: 0, activos: 0, porVencer: 0, vencidos: 0, archivados: 0 })
   const [proximos, setProximos] = useState<Proceso[]>([])
 
   useEffect(() => {
-    api.get('/procesos?limit=5').then(r => {
-      const data = r.data.data as Proceso[]
+    api.get('/dashboard/stats').then(r => {
       setResumen({
         total: r.data.total,
-        alDia: data.filter(p => p.colorEstado === 'VERDE').length + (Math.floor(r.data.total * 0.5)),
-        porVencer: data.filter(p => ['AMARILLO', 'NARANJA'].includes(p.colorEstado)).length + (Math.floor(r.data.total * 0.3)),
-        vencidos: data.filter(p => p.colorEstado === 'ROJO').length + (Math.floor(r.data.total * 0.15)),
+        activos: r.data.activos,
+        porVencer: r.data.porVencer,
+        vencidos: r.data.vencidos,
+        archivados: r.data.archivados,
       })
-      setProximos(data.filter(p => p.colorEstado !== 'GRIS').slice(0, 5))
+      setProximos(r.data.proximos || [])
     })
   }, [])
 
   return (
     <Box>
-      <Box mb={3}>
-        <Typography variant="h4" fontWeight={800} color="primary">Dashboard</Typography>
-        <Typography variant="body2" color="text.secondary" mt={0.5}>
-          Resumen general del sistema de gestión de procesos
-        </Typography>
-      </Box>
+      <Card sx={{
+        mb: 3.5,
+        borderRadius: 3,
+        background: 'linear-gradient(135deg, rgba(155,142,216,0.04) 0%, rgba(242,181,174,0.04) 100%)',
+        border: '1px solid rgba(155,142,216,0.06)',
+        '&:hover': { transform: 'none', boxShadow: '0 1px 3px rgba(155,142,216,0.06)' },
+      }}>
+        <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2.5, py: 2.5, '&:last-child': { pb: 2.5 } }}>
+          <Avatar sx={{
+            width: 56,
+            height: 56,
+            background: 'linear-gradient(135deg, #9B8ED8 0%, #B8ADE8 100%)',
+            fontSize: '1.4rem',
+            fontWeight: 700,
+            boxShadow: '0 4px 14px rgba(155,142,216,0.3)',
+          }}>
+            {user?.nombre?.charAt(0) || 'U'}
+          </Avatar>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Box display="flex" alignItems="center" gap={1.5} flexWrap="wrap">
+              <Typography variant="h5" fontWeight={700} noWrap sx={{ color: '#2D2B3D' }}>
+                {user?.nombre || 'Usuario'}
+              </Typography>
+              <Chip
+                icon={<Badge sx={{ fontSize: 14 }} />}
+                label={rolLabels[user?.rol || ''] || user?.rol || '—'}
+                size="small"
+                sx={{
+                  fontWeight: 600,
+                  background: 'linear-gradient(135deg, rgba(155,142,216,0.12) 0%, rgba(242,181,174,0.12) 100%)',
+                  color: '#2D2B3D',
+                  backdropFilter: 'blur(4px)',
+                }}
+              />
+            </Box>
+            <Box display="flex" alignItems="center" gap={1} flexWrap="wrap" mt={0.6}>
+              <Business sx={{ fontSize: 15, color: '#6E6B7B' }} />
+              {user?.despachos && user.despachos.length > 0 ? (
+                <Box display="flex" gap={0.5} flexWrap="wrap">
+                  {user.despachos.map(d => (
+                    <Chip
+                      key={d.id}
+                      label={`${d.nombre} (${d.codigo})`}
+                      size="small"
+                      variant="outlined"
+                      sx={{ height: 22, fontSize: '0.7rem', borderColor: 'rgba(155,142,216,0.25)' }}
+                    />
+                  ))}
+                </Box>
+              ) : (
+                <Typography variant="body2" color="text.disabled" sx={{ fontSize: '0.8rem' }}>
+                  Sin despachos asignados
+                </Typography>
+              )}
+            </Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.6 }}>
+              Resumen general del sistema de gestión de procesos
+            </Typography>
+          </Box>
+        </CardContent>
+      </Card>
 
-      <Grid container spacing={3} mb={3}>
+      <Grid container spacing={3} mb={4}>
         {statCards.map(s => (
           <Grid item xs={12} sm={6} md={3} key={s.key}>
-            <Card sx={{ borderRadius: 3, p: 0.5 }}>
+            <Card sx={{
+              borderRadius: 3,
+              p: 0.5,
+              background: '#FFFFFF',
+              position: 'relative',
+              overflow: 'hidden',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 4,
+                background: s.gradient,
+                opacity: 0.6,
+              },
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                top: -20,
+                right: -20,
+                width: 100,
+                height: 100,
+                borderRadius: '50%',
+                background: s.gradient,
+                opacity: 0.04,
+              },
+            }}>
               <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 2.5, '&:last-child': { pb: 2.5 } }}>
-                <Avatar sx={{ width: 52, height: 52, bgcolor: s.bg, color: s.color }}>
+                <Avatar sx={{
+                  width: 54,
+                  height: 54,
+                  background: s.bg,
+                  color: s.color,
+                  boxShadow: `0 4px 12px ${s.color}20`,
+                }}>
                   {s.icon}
                 </Avatar>
                 <Box>
@@ -82,10 +200,32 @@ export default function Dashboard() {
         ))}
       </Grid>
 
-      <Paper sx={{ borderRadius: 3, overflow: 'hidden' }}>
+      <Paper sx={{
+        borderRadius: 3,
+        overflow: 'hidden',
+        '&::before': {
+          content: '""',
+          display: 'block',
+          height: 4,
+          background: 'linear-gradient(90deg, #9B8ED8 0%, #B8ADE8 50%, #F2B5AE 100%)',
+        },
+      }}>
         <Box display="flex" alignItems="center" justifyContent="space-between" px={3} pt={2.5} pb={1.5}>
-          <Typography variant="h6" fontWeight={700}>Próximos a vencer</Typography>
-          <Box display="flex" alignItems="center" gap={0.5} sx={{ cursor: 'pointer', color: 'primary.main' }} onClick={() => navigate('/procesos')}>
+          <Typography variant="h6" fontWeight={700} sx={{ color: '#2D2B3D' }}>
+            Próximos a vencer
+          </Typography>
+          <Box
+            display="flex"
+            alignItems="center"
+            gap={0.5}
+            onClick={() => navigate('/procesos')}
+            sx={{
+              cursor: 'pointer',
+              color: '#9B8ED8',
+              transition: 'color 0.2s, gap 0.2s',
+              '&:hover': { color: '#7B6FC0', gap: 1 },
+            }}
+          >
             <Typography variant="body2" fontWeight={600}>Ver todos</Typography>
             <ArrowForward fontSize="small" />
           </Box>
@@ -116,10 +256,11 @@ export default function Dashboard() {
                     <Chip
                       label={colorMap[p.colorEstado]?.label || p.colorEstado}
                       sx={{
-                        bgcolor: colorMap[p.colorEstado]?.color || '#757575',
-                        color: '#fff',
+                        bgcolor: colorMap[p.colorEstado]?.bg || 'rgba(155,142,216,0.1)',
+                        color: colorMap[p.colorEstado]?.color || '#6E6B7B',
                         fontWeight: 700,
                         fontSize: '0.7rem',
+                        backdropFilter: 'blur(4px)',
                       }}
                       size="small"
                     />

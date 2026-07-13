@@ -5,6 +5,7 @@ import { ThemeProvider, CssBaseline } from '@mui/material'
 import { AuthProvider } from './context/AuthContext'
 import theme from './theme'
 import App from './App'
+import 'sweetalert2/dist/sweetalert2.min.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

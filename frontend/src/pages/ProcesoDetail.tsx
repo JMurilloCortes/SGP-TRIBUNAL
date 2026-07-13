@@ -16,12 +16,12 @@ import ProvidenciaDialog from '../components/ProvidenciaDialog'
 import GenerarOficioDialog from '../components/GenerarOficioDialog'
 import type { Proceso } from '../types'
 
-const colorMap: Record<string, { label: string; color: string }> = {
-  VERDE: { label: 'Al día', color: '#2e7d32' },
-  AMARILLO: { label: 'Próximo a vencer', color: '#ed6c02' },
-  NARANJA: { label: 'Por vencer', color: '#e65100' },
-  ROJO: { label: 'Vencido', color: '#d32f2f' },
-  GRIS: { label: 'Archivado', color: '#757575' },
+const colorMap: Record<string, { label: string; color: string; bg: string }> = {
+  VERDE: { label: 'Al día', color: '#2D6B3F', bg: 'rgba(139,196,168,0.15)' },
+  AMARILLO: { label: 'Próximo a vencer', color: '#8A7530', bg: 'rgba(232,207,150,0.15)' },
+  NARANJA: { label: 'Por vencer', color: '#8A5A30', bg: 'rgba(232,207,150,0.15)' },
+  ROJO: { label: 'Vencido', color: '#8A3040', bg: 'rgba(232,168,176,0.15)' },
+  GRIS: { label: 'Archivado', color: '#5A5868', bg: 'rgba(155,142,216,0.1)' },
 }
 
 export default function ProcesoDetail() {
@@ -72,31 +72,35 @@ export default function ProcesoDetail() {
 
   return (
     <Box>
-      <Box display="flex" alignItems="center" gap={2} mb={3}>
-        <IconButton onClick={() => navigate('/procesos')} sx={{ bgcolor: 'rgba(13,27,74,0.08)', borderRadius: 2 }}>
-          <ArrowBack />
-        </IconButton>
-        <Box flex={1}>
-          <Box display="flex" alignItems="center" gap={2}>
-            <Typography variant="h4" fontWeight={800} color="primary">{proceso.radicado}</Typography>
-            <Chip
-              label={colorMap[proceso.colorEstado]?.label || proceso.colorEstado}
-              sx={{ bgcolor: colorMap[proceso.colorEstado]?.color || '#757575', color: '#fff', fontWeight: 700 }}
-              size="small"
-            />
-            <Chip
-              label={proceso.instancia === 'PRIMERA' ? '1ª Instancia' : '2ª Instancia'}
-              variant="outlined"
-              color={proceso.instancia === 'PRIMERA' ? 'primary' : 'secondary'}
-              size="small"
-              sx={{ fontWeight: 600 }}
-            />
+      <Box display="flex" alignItems="flex-start" gap={2} mb={3}
+        sx={{ flexDirection: { xs: 'column', sm: 'row' } }}>
+        <Box display="flex" alignItems="center" gap={2} sx={{ width: { xs: '100%', sm: 'auto' } }}>
+          <IconButton onClick={() => navigate('/procesos')} sx={{ bgcolor: 'rgba(155,142,216,0.1)', borderRadius: 2, flexShrink: 0 }}>
+            <ArrowBack />
+          </IconButton>
+          <Box flex={1} sx={{ minWidth: 0 }}>
+            <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
+              <Typography variant="h4" fontWeight={800} color="primary" sx={{ fontSize: { xs: '1.3rem', sm: '2.125rem' } }}>{proceso.radicado}</Typography>
+              <Chip
+                label={colorMap[proceso.colorEstado]?.label || proceso.colorEstado}
+                sx={{ bgcolor: colorMap[proceso.colorEstado]?.bg || 'rgba(155,142,216,0.1)', color: colorMap[proceso.colorEstado]?.color || '#6E6B7B', fontWeight: 700, backdropFilter: 'blur(4px)' }}
+                size="small"
+              />
+              <Chip
+                label={proceso.instancia === 'PRIMERA' ? '1ª Instancia' : '2ª Instancia'}
+                variant="outlined"
+                color={proceso.instancia === 'PRIMERA' ? 'primary' : 'secondary'}
+                size="small"
+                sx={{ fontWeight: 600 }}
+              />
+            </Box>
+            <Typography variant="body2" color="text.secondary" mt={0.5}>
+              {(proceso as any).claseProceso?.nombre} - {(proceso as any).despachoActual?.nombre}
+            </Typography>
           </Box>
-          <Typography variant="body2" color="text.secondary" mt={0.5}>
-            {(proceso as any).claseProceso?.nombre} - {(proceso as any).despachoActual?.nombre}
-          </Typography>
         </Box>
-        <Button variant="outlined" startIcon={<Edit />} onClick={() => navigate(`/procesos/${id}/editar`)} sx={{ borderRadius: 2 }}>
+        <Button variant="outlined" startIcon={<Edit />} onClick={() => navigate(`/procesos/${id}/editar`)}
+          sx={{ borderRadius: 2, width: { xs: '100%', sm: 'auto' }, whiteSpace: 'nowrap' }}>
           Editar
         </Button>
       </Box>
@@ -106,7 +110,7 @@ export default function ProcesoDetail() {
           <Grid item xs={12} sm={6} md={3} key={i}>
             <Card sx={{ borderRadius: 2 }}>
               <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 2, '&:last-child': { pb: 2 } }}>
-                <Avatar sx={{ width: 40, height: 40, bgcolor: 'rgba(13,27,74,0.08)', color: 'primary.main' }}>
+                <Avatar sx={{ width: 40, height: 40, bgcolor: 'rgba(155,142,216,0.1)', color: '#9B8ED8' }}>
                   {c.icon}
                 </Avatar>
                 <Box sx={{ minWidth: 0 }}>
@@ -120,14 +124,17 @@ export default function ProcesoDetail() {
       </Grid>
 
       {(user?.rol === 'ADMIN' || user?.rol === 'ESCRIBIENTE') && (
-        <Box display="flex" gap={2} mb={3}>
-          <Button variant="contained" startIcon={<Gavel />} onClick={() => setProvidenciaOpen(true)}>
+        <Box display="flex" gap={1} mb={3} sx={{ flexWrap: 'wrap' }}>
+          <Button variant="contained" startIcon={<Gavel />} onClick={() => setProvidenciaOpen(true)}
+            sx={{ width: { xs: '100%', sm: 'auto' }, whiteSpace: 'nowrap' }}>
             Registrar Providencia
           </Button>
-          <Button variant="contained" color="secondary" startIcon={<Description />} onClick={() => setOficioOpen(true)}>
+          <Button variant="contained" color="secondary" startIcon={<Description />} onClick={() => setOficioOpen(true)}
+            sx={{ width: { xs: '100%', sm: 'auto' }, whiteSpace: 'nowrap' }}>
             Generar Oficio
           </Button>
-          <Button variant="outlined" startIcon={<History />} onClick={() => setCambioEtapaOpen(true)}>
+          <Button variant="outlined" startIcon={<History />} onClick={() => setCambioEtapaOpen(true)}
+            sx={{ width: { xs: '100%', sm: 'auto' }, whiteSpace: 'nowrap' }}>
             Cambiar Etapa
           </Button>
         </Box>

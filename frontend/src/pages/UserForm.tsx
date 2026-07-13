@@ -67,29 +67,33 @@ export default function UserForm() {
 
   return (
     <Box>
-      <Typography variant="h4" fontWeight="bold" mb={3}>
+      <Typography variant="h4" fontWeight={800} mb={3} sx={{
+        background: 'linear-gradient(135deg, #2D2B3D 0%, #9B8ED8 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+      }}>
         {isEdit ? 'Editar Usuario' : 'Nuevo Usuario'}
       </Typography>
 
-      <Paper sx={{ p: 3, maxWidth: 600 }}>
+      <Paper sx={{ p: { xs: 2, sm: 3 }, maxWidth: 720, mx: 'auto' }}>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
         <form onSubmit={handleSubmit}>
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid item xs={12} sm={6}>
               <TextField fullWidth label="Nombre" required
                 value={nombre} onChange={e => setNombre(e.target.value)} />
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={12} sm={6}>
               <TextField fullWidth label="Email" type="email" required
                 value={email} onChange={e => setEmail(e.target.value)} />
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={12} sm={6}>
               <TextField fullWidth label={isEdit ? 'Nueva contraseña (dejar vacío para mantener)' : 'Contraseña'}
                 type="password" required={!isEdit}
                 value={password} onChange={e => setPassword(e.target.value)} />
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={12} sm={6}>
               <FormControl fullWidth required>
                 <InputLabel>Rol</InputLabel>
                 <Select value={rol} label="Rol" onChange={e => setRol(e.target.value as 'ADMIN' | 'ESCRIBIENTE' | 'NOTIFICADOR')}>

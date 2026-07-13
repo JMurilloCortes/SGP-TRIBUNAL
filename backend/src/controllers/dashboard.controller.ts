@@ -30,6 +30,7 @@ export async function stats(req: AuthRequest, res: Response) {
       include: {
         claseProceso: true,
         etapaActual: true,
+        despachoActual: true,
         terminos: {
           where: { estado: 'PENDIENTE' },
           orderBy: { fechaVencimiento: 'asc' },

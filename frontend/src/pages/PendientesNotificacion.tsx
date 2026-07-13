@@ -23,10 +23,14 @@ export default function PendientesNotificacion() {
 
   return (
     <Box>
-      <Typography variant="h4" fontWeight="bold" mb={3}>Pendientes de Notificación</Typography>
+      <Typography variant="h4" fontWeight={800} mb={3} sx={{
+        background: 'linear-gradient(135deg, #2D2B3D 0%, #9B8ED8 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+      }}>Pendientes de Notificación</Typography>
 
-      <TableContainer component={Paper}>
-        <Table>
+      <TableContainer component={Paper} sx={{ '&::-webkit-scrollbar': { height: 6 }, '&::-webkit-scrollbar-thumb': { background: 'rgba(155,142,216,0.2)', borderRadius: 3 } }}>
+        <Table sx={{ minWidth: 750 }}>
           <TableHead>
             <TableRow>
               <TableCell>Radicado</TableCell>

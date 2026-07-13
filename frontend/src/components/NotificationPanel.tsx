@@ -72,13 +72,13 @@ export default function NotificationBell() {
         onClose={() => setAnchorEl(null)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        slotProps={{ paper: { sx: { width: 400, maxHeight: 500 } } }}
+        slotProps={{ paper: { sx: { width: { xs: 'calc(100vw - 32px)', sm: 400 }, maxHeight: 500 } } }}
       >
-        <Box display="flex" justifyContent="space-between" alignItems="center" px={2} py={1}>
-          <Typography variant="subtitle1" fontWeight="bold">Notificaciones</Typography>
+        <Box display="flex" justifyContent="space-between" alignItems="center" px={2} py={1.2} sx={{ minHeight: 48 }}>
+          <Typography variant="subtitle1" fontWeight="bold" noWrap>Notificaciones</Typography>
           {noLeidas > 0 && (
-            <Button size="small" onClick={handleMarcarTodasLeidas}>
-              Marcar todas leídas
+            <Button size="small" onClick={handleMarcarTodasLeidas} sx={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
+              Marcar todas
             </Button>
           )}
         </Box>
@@ -90,34 +90,36 @@ export default function NotificationBell() {
             </Typography>
           </Box>
         ) : (
-          <List dense>
+          <List dense sx={{ '& .MuiListItemButton-root': { px: 2 } }}>
             {notificaciones.slice(0, 10).map(n => (
               <ListItem key={n.id} disablePadding divider>
-                <ListItemButton onClick={() => handleClickNotif(n)}>
-                  <ListItemIcon sx={{ minWidth: 36 }}>
+                <ListItemButton onClick={() => handleClickNotif(n)} sx={{ alignItems: 'flex-start', py: 1.2 }}>
+                  <ListItemIcon sx={{ minWidth: 36, mt: 0.3 }}>
                     {iconMap[n.tipo] || <Info />}
                   </ListItemIcon>
                   <ListItemText
+                    sx={{ my: 0, minWidth: 0, overflow: 'hidden' }}
                     primary={
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <Typography variant="body2" fontWeight={n.leida ? 'normal' : 'bold'}>
+                      <Box display="flex" alignItems="center" gap={0.8} sx={{ flexWrap: 'nowrap', minWidth: 0 }}>
+                        <Typography variant="body2" fontWeight={n.leida ? 500 : 700} noWrap sx={{ flexShrink: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {n.proceso?.radicado}
                         </Typography>
                         <Chip label={n.tipo} size="small"
                           color={colorMap[n.tipo] || 'default'}
-                          variant="outlined" sx={{ height: 20, fontSize: 10 }}
+                          variant="outlined" sx={{ height: 20, fontSize: 10, flexShrink: 0 }}
                         />
                       </Box>
                     }
+                    primaryTypographyProps={{ sx: { overflow: 'hidden' } }}
                     secondary={n.mensaje.length > 80 ? n.mensaje.substring(0, 80) + '...' : n.mensaje}
-                    secondaryTypographyProps={{ fontSize: 12 }}
+                    secondaryTypographyProps={{ fontSize: 12, sx: { wordBreak: 'break-word', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' } }}
                   />
                 </ListItemButton>
               </ListItem>
             ))}
             {notificaciones.length > 10 && (
-              <ListItemButton onClick={() => { navigate('/notificaciones'); setAnchorEl(null) }}>
-                <Typography variant="body2" color="primary" textAlign="center" width="1">
+              <ListItemButton onClick={() => { navigate('/notificaciones'); setAnchorEl(null) }} sx={{ justifyContent: 'center' }}>
+                <Typography variant="body2" color="primary" fontWeight={600}>
                   Ver todas ({notificaciones.length})
                 </Typography>
               </ListItemButton>

@@ -8,7 +8,7 @@ import {
 import {
   Menu as MenuIcon, Dashboard, Gavel, Logout,
   Person, AddCircle, Notifications as NotificationsIcon, GridOn,
-  Scale, ChevronLeft,
+  AccountBalance, ChevronLeft,
 } from '@mui/icons-material'
 import { useAuth } from '../context/AuthContext'
 import NotificationBell from './NotificationPanel'
@@ -43,17 +43,59 @@ export default function Layout() {
 
   const drawerContent = (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'flex-start', px: collapsed ? 0 : 2, minHeight: 64 }}>
+      <Box sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: collapsed ? 'center' : 'flex-start',
+        px: collapsed ? 0 : 2.5,
+        minHeight: 72,
+        background: 'linear-gradient(135deg, rgba(155,142,216,0.04) 0%, rgba(242,181,174,0.04) 100%)',
+        borderBottom: '1px solid rgba(155,142,216,0.06)',
+      }}>
         {collapsed ? (
-          <Scale sx={{ color: 'primary.main', fontSize: 32 }} />
+          <Box sx={{
+            width: 44,
+            height: 44,
+            borderRadius: 2,
+            background: 'linear-gradient(135deg, #9B8ED8 0%, #B8ADE8 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 12px rgba(155,142,216,0.3)',
+          }}>
+            <AccountBalance sx={{ color: '#fff', fontSize: 26 }} />
+          </Box>
         ) : (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Scale sx={{ color: 'primary.main', fontSize: 32 }} />
+            <Box sx={{
+              width: 44,
+              height: 44,
+              borderRadius: 2,
+              background: 'linear-gradient(135deg, #9B8ED8 0%, #B8ADE8 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(155,142,216,0.3)',
+            }}>
+              <AccountBalance sx={{ color: '#fff', fontSize: 26 }} />
+            </Box>
             <Box>
-              <Typography variant="h6" fontWeight={800} color="primary" sx={{ lineHeight: 1.2, fontSize: '1.15rem' }}>
+              <Typography variant="h6" fontWeight={800} sx={{
+                lineHeight: 1.2,
+                fontSize: '1.15rem',
+                background: 'linear-gradient(135deg, #2D2B3D 0%, #9B8ED8 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}>
                 SGP Tribunal
               </Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+              <Typography variant="caption" sx={{
+                fontSize: '0.6rem',
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                color: '#6E6B7B',
+                fontWeight: 500,
+              }}>
                 Administrativo del Chocó
               </Typography>
             </Box>
@@ -61,7 +103,7 @@ export default function Layout() {
         )}
       </Box>
       <Divider />
-      <List sx={{ flex: 1, py: 1 }}>
+      <List sx={{ flex: 1, py: 1.5 }}>
         {menuItems.map((item) => {
           const selected = location.pathname === item.path
           return (
@@ -74,41 +116,80 @@ export default function Layout() {
                   justifyContent: collapsed ? 'center' : 'initial',
                   px: collapsed ? 1 : 2,
                   mx: 1,
-                  my: 0.3,
+                  my: 0.4,
                   borderRadius: 2,
                   position: 'relative',
+                  overflow: 'hidden',
                   ...(selected && {
+                    background: 'linear-gradient(135deg, rgba(155,142,216,0.1) 0%, rgba(155,142,216,0.04) 100%)',
                     '&::before': {
                       content: '""',
                       position: 'absolute',
                       left: 0,
-                      top: '25%',
-                      height: '50%',
-                      width: 3,
-                      bgcolor: 'secondary.main',
+                      top: '20%',
+                      height: '60%',
+                      width: 3.5,
+                      background: 'linear-gradient(180deg, #9B8ED8 0%, #B8ADE8 100%)',
                       borderRadius: '0 4px 4px 0',
+                      boxShadow: '0 0 12px rgba(155,142,216,0.4)',
+                    },
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, rgba(155,142,216,0.14) 0%, rgba(155,142,216,0.06) 100%)',
+                    },
+                  }),
+                  ...(!selected && {
+                    '&:hover': {
+                      background: 'rgba(155,142,216,0.06)',
+                      '& .MuiListItemIcon-root': { color: '#9B8ED8' },
                     },
                   }),
                 }}
               >
-                <ListItemIcon sx={{ minWidth: collapsed ? 0 : 40, justifyContent: 'center' }}>
+                <ListItemIcon sx={{
+                  minWidth: collapsed ? 0 : 40,
+                  justifyContent: 'center',
+                  color: selected ? '#9B8ED8' : undefined,
+                  transition: 'color 0.2s ease',
+                }}>
                   {item.icon}
                 </ListItemIcon>
-                {!collapsed && <ListItemText primary={item.text} primaryTypographyProps={{ fontSize: '0.9rem', fontWeight: selected ? 600 : 400 }} />}
+                {!collapsed && (
+                  <ListItemText
+                    primary={item.text}
+                    primaryTypographyProps={{
+                      fontSize: '0.9rem',
+                      fontWeight: selected ? 600 : 400,
+                    }}
+                  />
+                )}
               </ListItemButton>
             </ListItem>
           )
         })}
       </List>
       <Divider />
-      <Box sx={{ p: collapsed ? 1 : 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-        <Avatar sx={{ width: 36, height: 36, bgcolor: 'secondary.main', fontSize: '0.9rem', fontWeight: 700 }}>
+      <Box sx={{
+        p: collapsed ? 1.5 : 2.5,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1.5,
+        background: 'linear-gradient(135deg, rgba(242,181,174,0.04) 0%, rgba(155,142,216,0.04) 100%)',
+      }}>
+        <Avatar sx={{
+          width: 38,
+          height: 38,
+          background: 'linear-gradient(135deg, #F2B5AE 0%, #F8D0CC 100%)',
+          color: '#2D2B3D',
+          fontSize: '0.9rem',
+          fontWeight: 700,
+          boxShadow: '0 2px 8px rgba(242,181,174,0.3)',
+        }}>
           {user?.nombre?.charAt(0) || 'U'}
         </Avatar>
         {!collapsed && (
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="body2" fontWeight={600} noWrap>{user?.nombre}</Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'capitalize' }} noWrap>{user?.rol?.toLowerCase()}</Typography>
+            <Typography variant="body2" fontWeight={600} noWrap sx={{ color: '#2D2B3D' }}>{user?.nombre}</Typography>
+            <Typography variant="caption" sx={{ color: '#6E6B7B', textTransform: 'capitalize', fontWeight: 500 }} noWrap>{user?.rol?.toLowerCase()}</Typography>
           </Box>
         )}
       </Box>
@@ -123,10 +204,24 @@ export default function Layout() {
             <IconButton color="inherit" edge="start" onClick={() => setMobileOpen(!mobileOpen)} sx={{ mr: 1 }}>
               <MenuIcon />
             </IconButton>
-            <Typography variant="subtitle1" fontWeight={700} sx={{ flexGrow: 1 }}>SGP Tribunal</Typography>
+            <Typography variant="subtitle1" fontWeight={700} sx={{
+              flexGrow: 1,
+              background: 'linear-gradient(135deg, #2D2B3D 0%, #9B8ED8 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}>
+              SGP Tribunal
+            </Typography>
             <NotificationBell />
             <IconButton color="inherit" onClick={(e) => setAnchorEl(e.currentTarget)} sx={{ ml: 0.5 }}>
-              <Avatar sx={{ width: 30, height: 30, bgcolor: 'secondary.main', fontSize: '0.8rem' }}>
+              <Avatar sx={{
+                width: 30,
+                height: 30,
+                background: 'linear-gradient(135deg, #F2B5AE 0%, #F8D0CC 100%)',
+                color: '#2D2B3D',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+              }}>
                 {user?.nombre?.charAt(0) || 'U'}
               </Avatar>
             </IconButton>
@@ -154,7 +249,13 @@ export default function Layout() {
         >
           {drawerContent}
         </Drawer>
-        <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, sm: 3 }, width: '100%', minHeight: '100vh', bgcolor: 'background.default' }}>
+        <Box component="main" sx={{
+          flexGrow: 1,
+          p: { xs: 2, sm: 3 },
+          width: '100%',
+          minHeight: '100vh',
+          bgcolor: 'background.default',
+        }}>
           <Toolbar />
           <Outlet />
         </Box>
@@ -164,14 +265,14 @@ export default function Layout() {
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      <Box sx={{ width: currentWidth, flexShrink: 0, transition: 'width 0.25s ease' }}>
+      <Box sx={{ width: currentWidth, flexShrink: 0, transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}>
         <Drawer
           variant="permanent"
           sx={{
             '& .MuiDrawer-paper': {
               width: currentWidth,
               boxSizing: 'border-box',
-              transition: 'width 0.25s ease',
+              transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               overflowX: 'hidden',
             },
           }}
@@ -186,12 +287,24 @@ export default function Layout() {
             <IconButton color="inherit" edge="start" onClick={() => setCollapsed(!collapsed)} sx={{ mr: 1 }}>
               {collapsed ? <MenuIcon /> : <ChevronLeft />}
             </IconButton>
-            <Typography variant="subtitle1" fontWeight={700} sx={{ flexGrow: 1, opacity: collapsed ? 0 : 1, transition: 'opacity 0.2s' }}>
+            <Typography variant="subtitle1" fontWeight={700} sx={{
+              flexGrow: 1,
+              opacity: collapsed ? 0 : 1,
+              transition: 'opacity 0.25s ease',
+            }}>
               Sistema de Gestión de Procesos
             </Typography>
             <NotificationBell />
             <IconButton color="inherit" onClick={(e) => setAnchorEl(e.currentTarget)} sx={{ ml: 1 }}>
-              <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main', fontSize: '0.85rem', fontWeight: 700 }}>
+              <Avatar sx={{
+                width: 32,
+                height: 32,
+                background: 'linear-gradient(135deg, #F2B5AE 0%, #F8D0CC 100%)',
+                color: '#2D2B3D',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                boxShadow: '0 2px 8px rgba(242,181,174,0.3)',
+              }}>
                 {user?.nombre?.charAt(0) || 'U'}
               </Avatar>
             </IconButton>
@@ -210,7 +323,12 @@ export default function Layout() {
             </Menu>
           </Toolbar>
         </AppBar>
-        <Box component="main" sx={{ flex: 1, p: 3, bgcolor: 'background.default', overflow: 'auto' }}>
+        <Box component="main" sx={{
+          flex: 1,
+          p: 3,
+          bgcolor: 'background.default',
+          overflow: 'auto',
+        }}>
           <Outlet />
         </Box>
       </Box>

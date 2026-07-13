@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField,
-  Select, MenuItem, FormControl, InputLabel, Alert, Typography,
+  Select, MenuItem, FormControl, InputLabel, Alert, Typography, Grid,
 } from '@mui/material'
 import api from '../services/api'
 
@@ -110,27 +110,43 @@ export default function GenerarOficioDialog({ open, procesoId, juzgadoOrigenId, 
             No hay consecutivos de oficio disponibles
           </Typography>
         )}
-        <FormControl fullWidth sx={{ mt: 1 }}>
-          <InputLabel>Modelo de oficio</InputLabel>
-          <Select value={modeloId} label="Modelo de oficio" onChange={e => setModeloId(e.target.value)}>
-            {modelos.map(m => <MenuItem key={m.id} value={m.id}>{m.nombre}</MenuItem>)}
-          </Select>
-        </FormControl>
+        <Grid container spacing={2} sx={{ mt: 0.5 }}>
+          <Grid item xs={12}>
+            <FormControl fullWidth>
+              <InputLabel>Modelo de oficio</InputLabel>
+              <Select value={modeloId} label="Modelo de oficio" onChange={e => setModeloId(e.target.value)}>
+                {modelos.map(m => <MenuItem key={m.id} value={m.id}>{m.nombre}</MenuItem>)}
+              </Select>
+            </FormControl>
+          </Grid>
 
-        {esDevolver && (
-          <FormControl fullWidth sx={{ mt: 2 }}>
-            <InputLabel>Juzgado destino</InputLabel>
-            <Select value={juzgadoSel} label="Juzgado destino" onChange={e => setJuzgadoSel(e.target.value)}>
-              {juzgados.map(j => <MenuItem key={j.id} value={j.id}>{j.nombre} ({j.codigo})</MenuItem>)}
-            </Select>
-          </FormControl>
-        )}
+          {esDevolver && (
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>Juzgado destino</InputLabel>
+                <Select value={juzgadoSel} label="Juzgado destino" onChange={e => setJuzgadoSel(e.target.value)}>
+                  {juzgados.map(j => <MenuItem key={j.id} value={j.id}>{j.nombre} ({j.codigo})</MenuItem>)}
+                </Select>
+              </FormControl>
+            </Grid>
+          )}
 
-        <TextField fullWidth label="Destinatario" sx={{ mt: 2 }} value={destinatario} onChange={e => setDestinatario(e.target.value)} />
-        <TextField fullWidth label="Cargo" sx={{ mt: 2 }} value={cargo} onChange={e => setCargo(e.target.value)} />
-        <TextField fullWidth label="Entidad" sx={{ mt: 2 }} value={entidad} onChange={e => setEntidad(e.target.value)} />
-        <TextField fullWidth label="Dirección" sx={{ mt: 2 }} value={direccion} onChange={e => setDireccion(e.target.value)} />
-        <TextField fullWidth label="Asunto" sx={{ mt: 2 }} value={asunto} onChange={e => setAsunto(e.target.value)} />
+          <Grid item xs={12} sm={6}>
+            <TextField fullWidth label="Destinatario" value={destinatario} onChange={e => setDestinatario(e.target.value)} />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField fullWidth label="Cargo" value={cargo} onChange={e => setCargo(e.target.value)} />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField fullWidth label="Entidad" value={entidad} onChange={e => setEntidad(e.target.value)} />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField fullWidth label="Dirección" value={direccion} onChange={e => setDireccion(e.target.value)} />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField fullWidth label="Asunto" value={asunto} onChange={e => setAsunto(e.target.value)} />
+          </Grid>
+        </Grid>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancelar</Button>

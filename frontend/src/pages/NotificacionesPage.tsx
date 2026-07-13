@@ -51,14 +51,20 @@ export default function NotificacionesPage() {
 
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3}>
+      <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3}
+        sx={{ flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 1.5, sm: 0 } }}>
         <Box>
-          <Typography variant="h4" fontWeight={800} color="primary">Notificaciones</Typography>
+          <Typography variant="h4" fontWeight={800} sx={{
+            background: 'linear-gradient(135deg, #2D2B3D 0%, #9B8ED8 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}>Notificaciones</Typography>
           <Typography variant="body2" color="text.secondary" mt={0.5}>
             Centro de notificaciones del sistema
           </Typography>
         </Box>
-        <Button startIcon={<DoneAll />} onClick={handleMarcarTodasLeidas} sx={{ borderRadius: 2 }}>
+        <Button startIcon={<DoneAll />} onClick={handleMarcarTodasLeidas}
+          sx={{ borderRadius: 2, width: { xs: '100%', sm: 'auto' }, whiteSpace: 'nowrap' }}>
           Marcar todas leídas
         </Button>
       </Box>
@@ -95,6 +101,8 @@ export default function NotificacionesPage() {
                       {iconMap[n.tipo] || <Info />}
                     </ListItemIcon>
                     <ListItemText
+                      primaryTypographyProps={{ component: 'div' }}
+                      secondaryTypographyProps={{ component: 'div' }}
                       primary={
                         <Box display="flex" alignItems="center" gap={1}>
                           <Typography variant="body2" fontWeight={n.leida ? 'normal' : 'bold'}>
