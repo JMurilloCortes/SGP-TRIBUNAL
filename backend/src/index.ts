@@ -3,6 +3,7 @@ import express from 'express'
 import cors from 'cors'
 import cron from 'node-cron'
 import { env } from './config/env'
+import { prisma } from './config/database'
 import { initSocket } from './config/socket'
 import authRoutes from './routes/auth.routes'
 import catalogoRoutes from './routes/catalogo.routes'
@@ -59,10 +60,34 @@ app.get('/api/health', (_req, res) => {
 
 // Cron job: verificar términos vencidos y generar alertas cada hora
 cron.schedule('0 * * * *', async () => {
-  const vencidos = await verificarTerminosVencidos()
-  const alertas = await generarAlertasTerminos()
-  console.log(`[Cron] Términos vencidos: ${vencidos}, Alertas generadas: ${JSON.stringify(alertas)}`)
+  try {
+    const vencidos = await verificarTerminosVencidos()
+    const alertas = await generarAlertasTerminos()
+    console.log(`[Cron] Términos vencidos: ${vencidos}, Alertas generadas: ${JSON.stringify(alertas)}`)
+  } catch (error) {
+    console.error('[Cron] Error:', error)
+  }
 })
+
+// Manejo de errores no capturados
+process.on('unhandledRejection', (error) => {
+  console.error('[Error] Promesa no manejada:', error)
+})
+
+process.on('uncaughtException', (error) => {
+  console.error('[Error] Excepción no capturada:', error)
+  prisma.$disconnect().then(() => process.exit(1))
+})
+
+// Apagado graceful
+const shutdown = async () => {
+  console.log('[Shutdown] Cerrando servidor...')
+  await prisma.$disconnect()
+  server.close(() => process.exit(0))
+}
+
+process.on('SIGTERM', shutdown)
+process.on('SIGINT', shutdown)
 
 server.listen(env.PORT, () => {
   console.log(`Servidor corriendo en puerto ${env.PORT}`)
