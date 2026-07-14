@@ -36,9 +36,9 @@ export async function list(req: AuthRequest, res: Response) {
 
   if (search) {
     where.OR = [
-      { radicado: { contains: search } },
-      { demandante: { contains: search } },
-      { demandado: { contains: search } },
+      { radicado: { contains: search, mode: 'insensitive' } },
+      { demandante: { contains: search, mode: 'insensitive' } },
+      { demandado: { contains: search, mode: 'insensitive' } },
     ]
   }
   if (etapa) where.etapaActualId = parseInt(etapa)

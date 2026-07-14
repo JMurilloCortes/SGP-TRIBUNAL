@@ -24,7 +24,20 @@ const server = http.createServer(app)
 
 initSocket(server)
 
-app.use(cors({ origin: env.FRONTEND_URL, credentials: true }))
+const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
+  .split(',')
+  .map((o: string) => o.trim())
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
+  credentials: true,
+}))
 app.use(express.json())
 
 app.use('/api/auth', authRoutes)
