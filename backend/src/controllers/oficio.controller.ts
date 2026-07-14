@@ -110,11 +110,11 @@ export async function generarOficio(req: AuthRequest, res: Response) {
     return { buffer, numeroOficio, consecActualizado }
   })
 
-  if (result.consecActualizado) {
-    getIO().emit('consecutivo:update', result.consecActualizado)
-  }
-
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
   res.setHeader('Content-Disposition', `attachment; filename="oficio_${result.numeroOficio || proceso.radicado}.docx"`)
   res.send(result.buffer)
+
+  if (result.consecActualizado) {
+    getIO().emit('consecutivo:update', result.consecActualizado)
+  }
 }

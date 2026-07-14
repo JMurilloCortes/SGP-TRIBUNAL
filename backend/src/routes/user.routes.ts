@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { authenticate, authorize } from '../middleware/auth'
-import { list, getById, create, update, updateDespachos, toggleEstado, remove } from '../controllers/user.controller'
+import { list, getById, create, update, updateDespachos, updateJuzgados, toggleEstado, remove } from '../controllers/user.controller'
 
 const router = Router()
 router.use(authenticate)
@@ -11,6 +11,7 @@ router.get('/:id', getById)
 router.post('/', create)
 router.put('/:id', update)
 router.patch('/:id/despachos', updateDespachos)
+router.patch('/:id/juzgados', updateJuzgados)
 router.patch('/:id/estado', toggleEstado)
 router.delete('/:id', remove)
 

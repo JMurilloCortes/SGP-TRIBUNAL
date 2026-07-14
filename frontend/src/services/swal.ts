@@ -159,8 +159,10 @@ export async function toast(type: ToastType, message: string) {
     timer: type === 'error' ? 5000 : 3500,
     timerProgressBar: true,
     icon: type,
+    backdrop: false,
     customClass: { popup: `sw-toast swal2-icon-${type}` },
     didOpen: (el) => {
+      el.style.marginTop = '64px'
       const bar = el.querySelector('.swal2-timer-progress-bar') as HTMLElement
       if (bar) {
         bar.style.background = `linear-gradient(90deg, ${t.bg}, ${t.icon})`

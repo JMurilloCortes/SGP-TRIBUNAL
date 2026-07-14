@@ -13,6 +13,9 @@ import notificacionRoutes from './routes/notificacion.routes'
 import userRoutes from './routes/user.routes'
 import oficioRoutes from './routes/oficio.routes'
 import consecutivoRoutes from './routes/consecutivo.routes'
+import tipoProvidenciaRoutes from './routes/tipoProvidencia.routes'
+import despachoRoutes from './routes/despacho.routes'
+import juzgadoRoutes from './routes/juzgado.routes'
 import { verificarTerminosVencidos } from './controllers/providencia.controller'
 import { generarAlertasTerminos } from './controllers/notificacion.controller'
 
@@ -33,6 +36,9 @@ app.use('/api/notificaciones', notificacionRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/oficios', oficioRoutes)
 app.use('/api/consecutivos', consecutivoRoutes)
+app.use('/api/tipos-providencia', tipoProvidenciaRoutes)
+app.use('/api/despachos', despachoRoutes)
+app.use('/api/juzgados', juzgadoRoutes)
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })

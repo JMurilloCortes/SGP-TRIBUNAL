@@ -13,6 +13,9 @@ import ConsecutivosPage from './pages/ConsecutivosPage'
 import UsersList from './pages/UsersList'
 import UserForm from './pages/UserForm'
 import UserDetail from './pages/UserDetail'
+import TiposProvidenciaPage from './pages/TiposProvidenciaPage'
+import DespachosPage from './pages/DespachosPage'
+import JuzgadosPage from './pages/JuzgadosPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -54,6 +57,9 @@ export default function App() {
         <Route path="/usuarios/nuevo" element={<UserForm />} />
         <Route path="/usuarios/:id" element={<UserDetail />} />
         <Route path="/usuarios/:id/editar" element={<UserForm />} />
+        <Route path="/tipos-providencia" element={<TiposProvidenciaPage />} />
+        <Route path="/despachos" element={<DespachosPage />} />
+        <Route path="/juzgados" element={<JuzgadosPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

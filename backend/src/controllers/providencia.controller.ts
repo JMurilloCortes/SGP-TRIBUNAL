@@ -89,65 +89,73 @@ export async function notificar(req: AuthRequest, res: Response) {
 
   const ahora = new Date()
   const fechaVencimiento = addBusinessDays(ahora, providencia.tipoProvidencia.diasTermino)
+  const color = calcularColor(fechaVencimiento)
+  const userId = req.user!.userId
 
-  const updated = await prisma.providencia.update({
-    where: { id },
-    data: {
-      fechaNotificacion: ahora,
-      terminos: {
-        create: {
-          procesoId: providencia.procesoId,
-          diasTotales: providencia.tipoProvidencia.diasTermino,
-          fechaInicio: ahora,
-          fechaVencimiento,
-          estado: EstadoTermino.PENDIENTE,
+  const [updated] = await prisma.$transaction([
+    prisma.providencia.update({
+      where: { id },
+      data: {
+        fechaNotificacion: ahora,
+        notificadoPor: userId,
+        terminos: {
+          create: {
+            procesoId: providencia.procesoId,
+            diasTotales: providencia.tipoProvidencia.diasTermino,
+            fechaInicio: ahora,
+            fechaVencimiento,
+            estado: EstadoTermino.PENDIENTE,
+          },
         },
       },
-    },
-    include: {
-      tipoProvidencia: true,
-      terminos: true,
-    },
-  })
+      include: { tipoProvidencia: true, terminos: true },
+    }),
+    prisma.proceso.update({
+      where: { id: providencia.procesoId },
+      data: { colorEstado: color },
+    }),
+    prisma.actuacion.create({
+      data: {
+        procesoId: providencia.procesoId,
+        userId,
+        descripcion: `Providencia notificada: ${providencia.tipoProvidencia.nombre}. Término: ${providencia.tipoProvidencia.diasTermino} días hábiles`,
+      },
+    }),
+  ])
 
-  // Update proceso color
-  const color = calcularColor(fechaVencimiento)
-  await prisma.proceso.update({
-    where: { id: providencia.procesoId },
-    data: { colorEstado: color },
-  })
-
-  // Create actuacion
-  await prisma.actuacion.create({
-    data: {
-      procesoId: providencia.procesoId,
-      userId: req.user!.userId,
-      descripcion: `Providencia notificada: ${providencia.tipoProvidencia.nombre}. Término: ${providencia.tipoProvidencia.diasTermino} días hábiles`,
-    },
-  })
-
-  // Notify users in the despacho
+  // Create notifications for users in the despacho (outside transaction for speed)
   const users = await prisma.user.findMany({
-    where: {
-      activo: true,
-      despachos: { some: { despachoId: providencia.proceso.despachoActualId } },
-    },
+    where: { activo: true, despachos: { some: { despachoId: providencia.proceso.despachoActualId } } },
+    select: { id: true },
   })
-  for (const user of users) {
-    await crearNotificacion(
-      providencia.procesoId,
-      'TAREA',
-      `Providencia notificada: ${providencia.tipoProvidencia.nombre} en proceso ${providencia.proceso.radicado}. Término: ${providencia.tipoProvidencia.diasTermino} días hábiles. Vence: ${fechaVencimiento.toLocaleDateString('es-CO')}`,
-      user.id,
-    )
+
+  if (users.length > 0) {
+    const mensaje = `Providencia notificada: ${providencia.tipoProvidencia.nombre} en proceso ${providencia.proceso.radicado}. Término: ${providencia.tipoProvidencia.diasTermino} días hábiles. Vence: ${fechaVencimiento.toLocaleDateString('es-CO')}`
+    await prisma.notificacion.createMany({
+      data: users.map(u => ({
+        procesoId: providencia.procesoId,
+        userId: u.id,
+        tipo: 'TAREA' as const,
+        mensaje,
+      })),
+    })
   }
 
   return res.json(updated)
 }
 
-export async function listPendientes(_req: AuthRequest, res: Response) {
+export async function listPendientes(req: AuthRequest, res: Response) {
+  const despachoIds = req.despachoIds || []
+
+  const where: any = { fechaNotificacion: null }
+
+  // Notificadores solo ven pendientes de sus despachos
+  if (req.user?.rol === 'NOTIFICADOR' && despachoIds.length > 0) {
+    where.proceso = { despachoActualId: { in: despachoIds } }
+  }
+
   const data = await prisma.providencia.findMany({
-    where: { fechaNotificacion: null },
+    where,
     include: {
       proceso: {
         select: { id: true, radicado: true, demandante: true, demandado: true, despachoActual: { select: { nombre: true, codigo: true } } },
@@ -155,6 +163,26 @@ export async function listPendientes(_req: AuthRequest, res: Response) {
       tipoProvidencia: true,
     },
     orderBy: { createdAt: 'desc' },
+  })
+  return res.json(data)
+}
+
+export async function listHistorial(req: AuthRequest, res: Response) {
+  const userId = req.user!.userId
+
+  const data = await prisma.providencia.findMany({
+    where: {
+      notificadoPor: userId,
+      fechaNotificacion: { not: null },
+    },
+    include: {
+      proceso: {
+        select: { id: true, radicado: true, demandante: true, demandado: true, despachoActual: { select: { nombre: true, codigo: true } } },
+      },
+      tipoProvidencia: true,
+      terminos: { select: { estado: true, fechaVencimiento: true } },
+    },
+    orderBy: { fechaNotificacion: 'desc' },
   })
   return res.json(data)
 }

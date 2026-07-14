@@ -8,16 +8,24 @@ import { Edit, ArrowBack } from '@mui/icons-material'
 import api from '../services/api'
 import type { User } from '../types'
 
-const rolColors: Record<string, 'primary' | 'success' | 'default'> = {
+const rolColors: Record<string, 'primary' | 'success' | 'default' | 'warning' | 'info' | 'error'> = {
   ADMIN: 'primary',
   NOTIFICADOR: 'success',
   ESCRIBIENTE: 'default',
+  CONTADOR_LIQUIDADOR: 'warning',
+  PROFESIONAL: 'info',
+  SECRETARIO: 'error',
+  OFICIAL_MAYOR: 'success',
 }
 
 const rolLabels: Record<string, string> = {
   ADMIN: 'Administrador',
   NOTIFICADOR: 'Notificador',
   ESCRIBIENTE: 'Escribiente',
+  CONTADOR_LIQUIDADOR: 'Contador Liquidador',
+  PROFESIONAL: 'Profesional Universitario',
+  SECRETARIO: 'Secretario General',
+  OFICIAL_MAYOR: 'Oficial Mayor',
 }
 
 export default function UserDetail() {
@@ -94,6 +102,17 @@ export default function UserDetail() {
               </Typography>
             </Grid>
 
+            {(user as any).cargo && (
+              <Grid item xs={12} sm={6}>
+                <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+                  Cargo
+                </Typography>
+                <Typography variant="body1" fontWeight={500} sx={{ mt: 0.5 }}>
+                  {(user as any).cargo}
+                </Typography>
+              </Grid>
+            )}
+
             <Grid item xs={12} sm={6}>
               <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
                 Despachos asignados
@@ -110,6 +129,21 @@ export default function UserDetail() {
                 )}
               </Box>
             </Grid>
+
+            {(user as any).juzgados?.length > 0 && (
+              <Grid item xs={12} sm={6}>
+                <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+                  Juzgados asignados
+                </Typography>
+                <Box mt={0.5}>
+                  <Box display="flex" gap={0.5} flexWrap="wrap">
+                    {(user as any).juzgados.map((j: any) => (
+                      <Chip key={j.id} label={`${j.nombre} (${j.codigo})`} size="small" variant="outlined" />
+                    ))}
+                  </Box>
+                </Box>
+              </Grid>
+            )}
 
             <Grid item xs={12}>
               <Divider sx={{ my: 1 }} />

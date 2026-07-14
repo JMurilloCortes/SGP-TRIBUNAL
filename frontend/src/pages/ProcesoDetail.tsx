@@ -9,6 +9,7 @@ import {
 import {
   ArrowBack, Edit, Gavel, Description, History,
   Person, CalendarToday, FolderOpen, Notifications as NotifIcon,
+  CheckCircle,
 } from '@mui/icons-material'
 import api from '../services/api'
 import { useAuth } from '../context/AuthContext'
@@ -205,6 +206,7 @@ export default function ProcesoDetail() {
                   <TableCell>Inicio</TableCell>
                   <TableCell>Vencimiento</TableCell>
                   <TableCell>Estado</TableCell>
+                  <TableCell align="right">Acción</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -222,10 +224,27 @@ export default function ProcesoDetail() {
                         sx={{ fontWeight: 600 }}
                       />
                     </TableCell>
+                    <TableCell align="right">
+                      {t.estado === 'VENCIDO' && (
+                        <Button
+                          size="small"
+                          color="success"
+                          variant="outlined"
+                          startIcon={<CheckCircle />}
+                          onClick={async () => {
+                            await api.patch(`/terminos/${t.id}/cumplir`)
+                            const r = await api.get(`/procesos/${id}`)
+                            setProceso(r.data)
+                          }}
+                        >
+                          Cumplir
+                        </Button>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
                 {(!(proceso as any).terminos || (proceso as any).terminos.length === 0) && (
-                  <TableRow><TableCell colSpan={5} align="center" sx={{ py: 4 }}>Sin términos registrados</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={6} align="center" sx={{ py: 4 }}>Sin términos registrados</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>

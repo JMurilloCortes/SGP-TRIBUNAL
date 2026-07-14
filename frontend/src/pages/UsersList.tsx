@@ -10,6 +10,26 @@ import api from '../services/api'
 import { confirmDelete, toastSuccess, toastError } from '../services/swal'
 import type { User } from '../types'
 
+const roleLabels: Record<string, string> = {
+  ADMIN: 'Admin',
+  ESCRIBIENTE: 'Escribiente',
+  NOTIFICADOR: 'Notificador',
+  CONTADOR_LIQUIDADOR: 'Cont. Liquidador',
+  PROFESIONAL: 'Profesional',
+  SECRETARIO: 'Secretario',
+  OFICIAL_MAYOR: 'Oficial Mayor',
+}
+
+const roleColors: Record<string, 'primary' | 'success' | 'default' | 'warning' | 'info' | 'error'> = {
+  ADMIN: 'primary',
+  ESCRIBIENTE: 'default',
+  NOTIFICADOR: 'success',
+  CONTADOR_LIQUIDADOR: 'warning',
+  PROFESIONAL: 'info',
+  SECRETARIO: 'error',
+  OFICIAL_MAYOR: 'success',
+}
+
 export default function UsersList() {
   const navigate = useNavigate()
   const [users, setUsers] = useState<User[]>([])
@@ -62,8 +82,9 @@ export default function UsersList() {
               <TableRow>
                 <TableCell>Nombre</TableCell>
                 <TableCell>Email</TableCell>
-                <TableCell sx={{ width: 110 }}>Rol</TableCell>
-                <TableCell>Despachos</TableCell>
+                <TableCell sx={{ width: 90 }}>Rol</TableCell>
+                <TableCell sx={{ width: 140 }}>Cargo</TableCell>
+                <TableCell>Despachos / Juzgados</TableCell>
                 <TableCell sx={{ width: 130 }}>Estado</TableCell>
                 <TableCell sx={{ width: 120 }} align="right">Acciones</TableCell>
               </TableRow>
@@ -81,27 +102,39 @@ export default function UsersList() {
                   </TableCell>
                   <TableCell>
                     <Chip
-                      label={u.rol === 'ADMIN' ? 'Admin' : u.rol === 'NOTIFICADOR' ? 'Notificador' : 'Escribiente'}
-                      color={u.rol === 'ADMIN' ? 'primary' : u.rol === 'NOTIFICADOR' ? 'success' : 'default'}
+                      label={roleLabels[u.rol] || u.rol}
+                      color={roleColors[u.rol] || 'default'}
                       size="small"
                       sx={{ fontWeight: 600, minWidth: 0 }}
                     />
                   </TableCell>
                   <TableCell>
-                    {u.despachos?.length > 0 ? (
-                      <Box sx={{ display: 'flex', gap: 0.4, flexWrap: 'wrap' }}>
-                        {u.despachos.slice(0, 2).map(d => (
-                          <Chip key={d.id} label={d.codigo} size="small" variant="outlined" sx={{ height: 22, fontSize: '0.7rem' }} />
-                        ))}
-                        {u.despachos.length > 2 && (
-                          <Tooltip title={u.despachos.map(d => d.codigo).join(', ')} placement="top">
-                            <Chip label={`+${u.despachos.length - 2}`} size="small" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 700, bgcolor: 'rgba(155,142,216,0.1)' }} />
-                          </Tooltip>
-                        )}
-                      </Box>
-                    ) : (
-                      <Typography variant="body2" color="text.disabled">—</Typography>
-                    )}
+                    <Typography variant="body2" color="text.secondary" noWrap>
+                      {(u as any).cargo || '—'}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    {(() => {
+                      const despachos = u.despachos || []
+                      const juzgados = (u as any).juzgados || []
+                      const all = [
+                        ...despachos.map((d: any) => ({ code: d.codigo, key: `d-${d.id}` })),
+                        ...juzgados.map((j: any) => ({ code: j.codigo, key: `j-${j.id}` })),
+                      ]
+                      if (all.length === 0) return <Typography variant="body2" color="text.disabled">—</Typography>
+                      return (
+                        <Box sx={{ display: 'flex', gap: 0.4, flexWrap: 'wrap' }}>
+                          {all.slice(0, 3).map((item: any) => (
+                            <Chip key={item.key} label={item.code} size="small" variant="outlined" sx={{ height: 22, fontSize: '0.7rem' }} />
+                          ))}
+                          {all.length > 3 && (
+                            <Tooltip title={all.map((item: any) => item.code).join(', ')} placement="top">
+                              <Chip label={`+${all.length - 3}`} size="small" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 700, bgcolor: 'rgba(155,142,216,0.1)' }} />
+                            </Tooltip>
+                          )}
+                        </Box>
+                      )
+                    })()}
                   </TableCell>
                   <TableCell>
                     <Box display="flex" alignItems="center" gap={1}>
@@ -128,7 +161,7 @@ export default function UsersList() {
               ))}
               {users.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
+                  <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
                     <Typography color="text.secondary">No hay usuarios registrados</Typography>
                   </TableCell>
                 </TableRow>

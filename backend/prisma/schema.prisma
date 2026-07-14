@@ -11,6 +11,10 @@ enum Rol {
   ADMIN
   ESCRIBIENTE
   NOTIFICADOR
+  CONTADOR_LIQUIDADOR
+  PROFESIONAL
+  SECRETARIO
+  OFICIAL_MAYOR
 }
 
 enum Instancia {
@@ -57,14 +61,17 @@ model User {
   email        String    @unique
   passwordHash String    @map("password_hash")
   rol          Rol
+  cargo        String?
   activo       Boolean   @default(true)
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
   despachos      UserDespacho[]
+  juzgados       UserJuzgado[]
   actuaciones    Actuacion[]
   notificaciones Notificacion[]
   consecutivos   Consecutivo[]
+  providenciasNotificadas Providencia[]
 
   @@map("users")
 }
@@ -92,6 +99,17 @@ model Despacho {
   @@map("despachos")
 }
 
+model UserJuzgado {
+  userId    Int @map("user_id")
+  juzgadoId Int @map("juzgado_id")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  juzgado Juzgado @relation(fields: [juzgadoId], references: [id], onDelete: Cascade)
+
+  @@id([userId, juzgadoId])
+  @@map("users_juzgados")
+}
+
 model Juzgado {
   id        Int      @id @default(autoincrement())
   nombre    String   @unique
@@ -99,6 +117,7 @@ model Juzgado {
   createdAt DateTime @default(now()) @map("created_at")
 
   procesos  Proceso[]
+  usuarios  UserJuzgado[]
 
   @@map("juzgados")
 }
@@ -168,6 +187,7 @@ model TipoProvidencia {
   nombre              String  @unique
   diasTermino         Int     @map("dias_termino")
   ordenPredeterminada OrdenProvidencia @default(OTRO) @map("orden_predeterminada")
+  activo              Boolean @default(true)
   createdAt           DateTime @default(now()) @map("created_at")
 
   providencias Providencia[]
@@ -181,6 +201,7 @@ model Providencia {
   tipoProvidenciaId Int         @map("tipo_providencia_id")
   fechaProvidencia  DateTime    @map("fecha_providencia")
   fechaNotificacion DateTime?   @map("fecha_notificacion")
+  notificadoPor     Int?        @map("notificado_por")
   descripcion       String?
   orden             OrdenProvidencia @default(OTRO)
   createdAt         DateTime    @default(now()) @map("created_at")
@@ -188,6 +209,7 @@ model Providencia {
   proceso       Proceso          @relation(fields: [procesoId], references: [id])
   tipoProvidencia TipoProvidencia @relation(fields: [tipoProvidenciaId], references: [id])
   terminos      TerminoProceso[]
+  notificador   User?            @relation(fields: [notificadoPor], references: [id])
 
   @@map("providencias")
 }
@@ -256,6 +278,7 @@ model Consecutivo {
   updatedAt DateTime          @updatedAt @map("updated_at")
 
   @@unique([numero, tipo])
+  @@index([numero, tipo, estado])
   @@map("consecutivos")
 }
 

@@ -6,7 +6,19 @@ import {
   OutlinedInput, Checkbox, ListItemText,
 } from '@mui/material'
 import api from '../services/api'
-import type { Despacho, User } from '../types'
+import type { Despacho, Juzgado, User } from '../types'
+
+const ALL_ROLES = [
+  { value: 'ADMIN', label: 'Administrador' },
+  { value: 'ESCRIBIENTE', label: 'Escribiente' },
+  { value: 'NOTIFICADOR', label: 'Notificador' },
+  { value: 'CONTADOR_LIQUIDADOR', label: 'Contador Liquidador' },
+  { value: 'PROFESIONAL', label: 'Profesional Universitario' },
+  { value: 'SECRETARIO', label: 'Secretario General' },
+  { value: 'OFICIAL_MAYOR', label: 'Oficial Mayor' },
+]
+
+type Rol = typeof ALL_ROLES[number]['value']
 
 export default function UserForm() {
   const { id } = useParams()
@@ -16,15 +28,24 @@ export default function UserForm() {
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [rol, setRol] = useState<'ADMIN' | 'ESCRIBIENTE' | 'NOTIFICADOR'>('ESCRIBIENTE')
+  const [rol, setRol] = useState<Rol>('ESCRIBIENTE')
+  const [cargo, setCargo] = useState('')
   const [despachoIds, setDespachoIds] = useState<number[]>([])
+  const [juzgadoIds, setJuzgadoIds] = useState<number[]>([])
   const [despachos, setDespachos] = useState<Despacho[]>([])
+  const [juzgados, setJuzgados] = useState<Juzgado[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(isEdit)
 
   useEffect(() => {
-    api.get('/catalogos/despachos').then(r => setDespachos(r.data))
+    Promise.all([
+      api.get('/catalogos/despachos'),
+      api.get('/juzgados'),
+    ]).then(([d, j]) => {
+      setDespachos(d.data)
+      setJuzgados(j.data)
+    })
   }, [])
 
   useEffect(() => {
@@ -33,8 +54,10 @@ export default function UserForm() {
       const u = r.data
       setNombre(u.nombre)
       setEmail(u.email)
-      setRol(u.rol)
+      setRol(u.rol as Rol)
+      setCargo((u as any).cargo || '')
       setDespachoIds(u.despachos?.map(d => d.id) || [])
+      setJuzgadoIds((u as any).juzgados?.map((j: any) => j.id) || [])
     }).catch(() => navigate('/usuarios'))
       .finally(() => setLoadingData(false))
   }, [id])
@@ -46,18 +69,17 @@ export default function UserForm() {
 
     try {
       if (isEdit) {
-        const body: any = { nombre, email, rol }
+        const body: any = { nombre, email, rol, cargo: cargo || null }
         if (password) body.password = password
         await api.put(`/users/${id}`, body)
-        if (despachoIds.length > 0) {
-          await api.patch(`/users/${id}/despachos`, { despachoIds })
-        }
+        await api.patch(`/users/${id}/despachos`, { despachoIds })
+        await api.patch(`/users/${id}/juzgados`, { juzgadoIds })
       } else {
-        await api.post('/users', { nombre, email, password, rol, despachoIds })
+        await api.post('/users', { nombre, email, password, rol, cargo: cargo || null, despachoIds, juzgadoIds })
       }
       navigate('/usuarios')
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al guardar usuario')
+      setError(err.response?.data?.message || err.response?.data?.error || 'Error al guardar usuario')
     } finally {
       setLoading(false)
     }
@@ -96,12 +118,17 @@ export default function UserForm() {
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth required>
                 <InputLabel>Rol</InputLabel>
-                <Select value={rol} label="Rol" onChange={e => setRol(e.target.value as 'ADMIN' | 'ESCRIBIENTE' | 'NOTIFICADOR')}>
-                  <MenuItem value="ADMIN">Administrador</MenuItem>
-                  <MenuItem value="ESCRIBIENTE">Escribiente</MenuItem>
-                  <MenuItem value="NOTIFICADOR">Notificador</MenuItem>
+                <Select value={rol} label="Rol" onChange={e => setRol(e.target.value as Rol)}>
+                  {ALL_ROLES.map(r => (
+                    <MenuItem key={r.value} value={r.value}>{r.label}</MenuItem>
+                  ))}
                 </Select>
               </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField fullWidth label="Cargo / Cargo" value={cargo}
+                onChange={e => setCargo(e.target.value)}
+                placeholder="Ej: Contador Liquidador Grado 17" />
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth>
@@ -123,6 +150,31 @@ export default function UserForm() {
                     <MenuItem key={d.id} value={d.id}>
                       <Checkbox checked={despachoIds.includes(d.id)} />
                       <ListItemText primary={`${d.nombre} (${d.codigo})`} />
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>Juzgados asignados</InputLabel>
+                <Select
+                  multiple value={juzgadoIds}
+                  onChange={e => setJuzgadoIds(e.target.value as number[])}
+                  input={<OutlinedInput label="Juzgados asignados" />}
+                  renderValue={(selected) => (
+                    <Box display="flex" flexWrap="wrap" gap={0.5}>
+                      {selected.map(id => {
+                        const j = juzgados.find(j => j.id === id)
+                        return j ? <Chip key={id} label={j.codigo} size="small" /> : null
+                      })}
+                    </Box>
+                  )}
+                >
+                  {juzgados.map(j => (
+                    <MenuItem key={j.id} value={j.id}>
+                      <Checkbox checked={juzgadoIds.includes(j.id)} />
+                      <ListItemText primary={`${j.nombre} (${j.codigo})`} />
                     </MenuItem>
                   ))}
                 </Select>

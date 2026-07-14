@@ -8,13 +8,23 @@ import {
 import {
   Menu as MenuIcon, Dashboard, Gavel, Logout,
   Person, AddCircle, Notifications as NotificationsIcon, GridOn,
-  AccountBalance, ChevronLeft,
+  AccountBalance, ChevronLeft, GavelOutlined, Balance,
 } from '@mui/icons-material'
 import { useAuth } from '../context/AuthContext'
 import NotificationBell from './NotificationPanel'
 
 const drawerWidth = 270
 const collapsedWidth = 72
+
+const rolLabels: Record<string, string> = {
+  ADMIN: 'Administrador',
+  NOTIFICADOR: 'Notificador',
+  ESCRIBIENTE: 'Escribiente',
+  CONTADOR_LIQUIDADOR: 'Contador Liquidador',
+  PROFESIONAL: 'Profesional Universitario',
+  SECRETARIO: 'Secretario General',
+  OFICIAL_MAYOR: 'Oficial Mayor',
+}
 
 export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -36,7 +46,12 @@ export default function Layout() {
         ]),
     { text: 'Notificaciones', icon: <NotificationsIcon />, path: '/notificaciones' },
     { text: 'Consecutivos', icon: <GridOn />, path: '/consecutivos' },
-    ...(user?.rol === 'ADMIN' ? [{ text: 'Usuarios', icon: <Person />, path: '/usuarios' }] : []),
+    ...(user?.rol === 'ADMIN' ? [
+      { text: 'Usuarios', icon: <Person />, path: '/usuarios' },
+      { text: 'Despachos', icon: <AccountBalance />, path: '/despachos' },
+      { text: 'Juzgados', icon: <Balance />, path: '/juzgados' },
+      { text: 'Tipos Providencia', icon: <GavelOutlined />, path: '/tipos-providencia' },
+    ] : []),
   ]
 
   const currentWidth = isMobile ? 0 : (collapsed ? collapsedWidth : drawerWidth)
@@ -189,7 +204,7 @@ export default function Layout() {
         {!collapsed && (
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography variant="body2" fontWeight={600} noWrap sx={{ color: '#2D2B3D' }}>{user?.nombre}</Typography>
-            <Typography variant="caption" sx={{ color: '#6E6B7B', textTransform: 'capitalize', fontWeight: 500 }} noWrap>{user?.rol?.toLowerCase()}</Typography>
+            <Typography variant="caption" sx={{ color: '#6E6B7B', fontWeight: 500 }} noWrap>{rolLabels[user?.rol || ''] || user?.rol}</Typography>
           </Box>
         )}
       </Box>
@@ -230,7 +245,7 @@ export default function Layout() {
               <MenuItem disabled sx={{ opacity: '1 !important' }}>
                 <Box>
                   <Typography variant="body2" fontWeight={600}>{user?.nombre}</Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'capitalize' }}>{user?.rol?.toLowerCase()}</Typography>
+                  <Typography variant="caption" color="text.secondary" >{rolLabels[user?.rol || ''] || user?.rol}</Typography>
                 </Box>
               </MenuItem>
               <Divider />
@@ -313,7 +328,7 @@ export default function Layout() {
               <MenuItem disabled sx={{ opacity: '1 !important' }}>
                 <Box>
                   <Typography variant="body2" fontWeight={600}>{user?.nombre}</Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'capitalize' }}>{user?.rol?.toLowerCase()}</Typography>
+                  <Typography variant="caption" color="text.secondary" >{rolLabels[user?.rol || ''] || user?.rol}</Typography>
                 </Box>
               </MenuItem>
               <Divider />

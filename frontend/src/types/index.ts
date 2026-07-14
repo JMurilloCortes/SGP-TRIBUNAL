@@ -2,8 +2,10 @@ export interface User {
   id: number
   nombre: string
   email: string
-  rol: 'ADMIN' | 'ESCRIBIENTE' | 'NOTIFICADOR'
+  rol: 'ADMIN' | 'ESCRIBIENTE' | 'NOTIFICADOR' | 'CONTADOR_LIQUIDADOR' | 'PROFESIONAL' | 'SECRETARIO' | 'OFICIAL_MAYOR'
+  cargo?: string | null
   despachos: Despacho[]
+  juzgados?: Juzgado[]
   activo: boolean
 }
 
