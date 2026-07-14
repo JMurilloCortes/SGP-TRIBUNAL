@@ -182,11 +182,11 @@ export default function UserForm() {
             </Grid>
           </Grid>
 
-          <Box display="flex" gap={2} mt={3}>
-            <Button variant="contained" type="submit" disabled={loading}>
+          <Box display="flex" gap={2} mt={3} flexWrap="wrap">
+            <Button variant="contained" type="submit" disabled={loading} sx={{ width: { xs: '100%', sm: 'auto' } }}>
               {loading ? 'Guardando...' : isEdit ? 'Actualizar' : 'Crear'}
             </Button>
-            <Button variant="outlined" onClick={() => navigate('/usuarios')}>Cancelar</Button>
+            <Button variant="outlined" onClick={() => navigate('/usuarios')} sx={{ width: { xs: '100%', sm: 'auto' } }}>Cancelar</Button>
           </Box>
         </form>
       </Paper>

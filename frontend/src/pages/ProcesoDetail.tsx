@@ -142,7 +142,7 @@ export default function ProcesoDetail() {
       )}
 
       <Paper sx={{ borderRadius: 3, overflow: 'hidden' }}>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 2, pt: 1 }}>
+        <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto" sx={{ px: 2, pt: 1 }}>
           <Tab label="Providencias" icon={<Gavel />} iconPosition="start" />
           <Tab label="Términos" icon={<CalendarToday />} iconPosition="start" />
           <Tab label="Actuaciones" icon={<History />} iconPosition="start" />
@@ -152,7 +152,7 @@ export default function ProcesoDetail() {
 
         {tab === 0 && (
           <TableContainer>
-            <Table>
+            <Table sx={{ minWidth: 650 }}>
               <TableHead>
                 <TableRow>
                   <TableCell>Fecha</TableCell>
@@ -198,7 +198,7 @@ export default function ProcesoDetail() {
 
         {tab === 1 && (
           <TableContainer>
-            <Table>
+            <Table sx={{ minWidth: 700 }}>
               <TableHead>
                 <TableRow>
                   <TableCell>Providencia</TableCell>
@@ -253,7 +253,7 @@ export default function ProcesoDetail() {
 
         {tab === 2 && (
           <TableContainer>
-            <Table>
+            <Table sx={{ minWidth: 450 }}>
               <TableHead>
                 <TableRow>
                   <TableCell>Fecha</TableCell>
@@ -279,7 +279,7 @@ export default function ProcesoDetail() {
 
         {tab === 3 && (
           <TableContainer>
-            <Table>
+            <Table sx={{ minWidth: 550 }}>
               <TableHead>
                 <TableRow>
                   <TableCell>Fecha</TableCell>

@@ -65,7 +65,7 @@ export default function PendientesNotificacion() {
       }}>Notificaciones</Typography>
 
       <Paper sx={{ borderRadius: 3, overflow: 'hidden' }}>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 2, pt: 1 }}>
+        <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto" sx={{ px: 2, pt: 1 }}>
           <Tab label={`Pendientes (${pendientes.length})`} />
           <Tab label={`Historial (${historial.length})`} icon={<History />} iconPosition="start" />
         </Tabs>

@@ -120,10 +120,10 @@ export default function Dashboard() {
         border: '1px solid rgba(155,142,216,0.06)',
         '&:hover': { transform: 'none', boxShadow: '0 1px 3px rgba(155,142,216,0.06)' },
       }}>
-        <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2.5, py: 2.5, '&:last-child': { pb: 2.5 } }}>
+        <CardContent sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2.5 }, py: 2.5, flexWrap: 'wrap', '&:last-child': { pb: 2.5 } }}>
           <Avatar sx={{
-            width: 56,
-            height: 56,
+            width: { xs: 44, sm: 56 },
+            height: { xs: 44, sm: 56 },
             background: 'linear-gradient(135deg, #9B8ED8 0%, #B8ADE8 100%)',
             fontSize: '1.4rem',
             fontWeight: 700,
@@ -133,7 +133,7 @@ export default function Dashboard() {
           </Avatar>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Box display="flex" alignItems="center" gap={1.5} flexWrap="wrap">
-              <Typography variant="h5" fontWeight={700} noWrap sx={{ color: '#2D2B3D' }}>
+              <Typography variant="h5" fontWeight={700} sx={{ color: '#2D2B3D', fontSize: { xs: '1.15rem', sm: '1.5rem' } }}>
                 {user?.nombre || 'Usuario'}
               </Typography>
               <Chip
@@ -187,7 +187,7 @@ export default function Dashboard() {
               }}>
                 <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 2.5, '&:last-child': { pb: 2.5 } }}>
                   <Avatar sx={{
-                    width: 54, height: 54,
+                    width: { xs: 44, sm: 54 }, height: { xs: 44, sm: 54 },
                     background: 'rgba(232,168,176,0.08)', color: '#C4707A',
                     boxShadow: '0 4px 12px #C4707A20',
                   }}>
@@ -221,7 +221,7 @@ export default function Dashboard() {
               </Box>
             </Box>
             <TableContainer>
-              <Table>
+              <Table sx={{ minWidth: 700 }}>
                 <TableHead>
                   <TableRow>
                     <TableCell>Radicado</TableCell>
@@ -304,8 +304,8 @@ export default function Dashboard() {
                 }}>
                   <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 2.5, '&:last-child': { pb: 2.5 } }}>
                     <Avatar sx={{
-                      width: 54,
-                      height: 54,
+                      width: { xs: 44, sm: 54 },
+                      height: { xs: 44, sm: 54 },
                       background: s.bg,
                       color: s.color,
                       boxShadow: `0 4px 12px ${s.color}20`,
@@ -357,7 +357,7 @@ export default function Dashboard() {
               </Box>
             </Box>
             <TableContainer>
-              <Table>
+              <Table sx={{ minWidth: 650 }}>
                 <TableHead>
                   <TableRow>
                     <TableCell>Radicado</TableCell>

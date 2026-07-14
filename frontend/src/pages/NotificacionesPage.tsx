@@ -70,7 +70,7 @@ export default function NotificacionesPage() {
       </Box>
 
       <Paper sx={{ borderRadius: 3, overflow: 'hidden' }}>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 2, pt: 1 }}>
+        <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto" sx={{ px: 2, pt: 1 }}>
           <Tab label={`Todas (${notificaciones.length})`} />
           <Tab label={`Sin leer (${notificaciones.filter(n => !n.leida).length})`} />
         </Tabs>
@@ -104,7 +104,7 @@ export default function NotificacionesPage() {
                       primaryTypographyProps={{ component: 'div' }}
                       secondaryTypographyProps={{ component: 'div' }}
                       primary={
-                        <Box display="flex" alignItems="center" gap={1}>
+                        <Box display="flex" alignItems="center" gap={1} flexWrap="wrap" minWidth={0}>
                           <Typography variant="body2" fontWeight={n.leida ? 'normal' : 'bold'}>
                             {n.proceso?.radicado || 'Sistema'}
                           </Typography>

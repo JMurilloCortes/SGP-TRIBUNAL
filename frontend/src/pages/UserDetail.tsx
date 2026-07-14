@@ -46,7 +46,7 @@ export default function UserDetail() {
 
   return (
     <Box>
-      <Box display="flex" alignItems="center" gap={2} mb={3}>
+      <Box display="flex" alignItems="center" gap={2} mb={3} flexWrap="wrap">
         <Button startIcon={<ArrowBack />} onClick={() => navigate('/usuarios')} sx={{ borderRadius: 2, whiteSpace: 'nowrap' }}>
           Volver
         </Button>
@@ -54,27 +54,29 @@ export default function UserDetail() {
           background: 'linear-gradient(135deg, #2D2B3D 0%, #9B8ED8 100%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
+          fontSize: { xs: '1.3rem', sm: '2.125rem' },
         }}>{user.nombre}</Typography>
         <Button variant="outlined" startIcon={<Edit />}
-          onClick={() => navigate(`/usuarios/${id}/editar`)} sx={{ borderRadius: 2, whiteSpace: 'nowrap' }}>
+          onClick={() => navigate(`/usuarios/${id}/editar`)} sx={{ borderRadius: 2, whiteSpace: 'nowrap', width: { xs: '100%', sm: 'auto' } }}>
           Editar
         </Button>
       </Box>
 
       <Paper sx={{ borderRadius: 3, overflow: 'hidden' }}>
         <Box sx={{
-          p: 3,
+          p: { xs: 2, sm: 3 },
           display: 'flex',
           alignItems: 'center',
-          gap: 2.5,
+          gap: { xs: 1.5, sm: 2.5 },
+          flexWrap: 'wrap',
           background: 'linear-gradient(135deg, rgba(155,142,216,0.04) 0%, rgba(242,181,174,0.04) 100%)',
           borderBottom: '1px solid rgba(155,142,216,0.06)',
         }}>
           <Avatar sx={{
-            width: 64,
-            height: 64,
+            width: { xs: 48, sm: 64 },
+            height: { xs: 48, sm: 64 },
             background: 'linear-gradient(135deg, #9B8ED8 0%, #B8ADE8 100%)',
-            fontSize: '1.6rem',
+            fontSize: { xs: '1.2rem', sm: '1.6rem' },
             fontWeight: 700,
             boxShadow: '0 4px 14px rgba(155,142,216,0.3)',
           }}>

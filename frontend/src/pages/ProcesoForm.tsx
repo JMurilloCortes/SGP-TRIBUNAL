@@ -213,11 +213,11 @@ export default function ProcesoForm() {
             </Grid>
           </LocalizationProvider>
 
-          <Box display="flex" gap={2} mt={3}>
-            <Button variant="contained" type="submit" disabled={loading} sx={{ borderRadius: 2, px: 3, py: 1.2 }}>
+          <Box display="flex" gap={2} mt={3} flexWrap="wrap">
+            <Button variant="contained" type="submit" disabled={loading} sx={{ borderRadius: 2, px: 3, py: 1.2, width: { xs: '100%', sm: 'auto' } }}>
               {loading ? 'Guardando...' : isEdit ? 'Actualizar' : 'Registrar'}
             </Button>
-            <Button variant="outlined" onClick={() => navigate('/procesos')} sx={{ borderRadius: 2, px: 3 }}>Cancelar</Button>
+            <Button variant="outlined" onClick={() => navigate('/procesos')} sx={{ borderRadius: 2, px: 3, width: { xs: '100%', sm: 'auto' } }}>Cancelar</Button>
           </Box>
         </form>
       </Paper>

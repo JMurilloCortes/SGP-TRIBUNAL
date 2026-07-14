@@ -142,7 +142,7 @@ export default function ProcesoList() {
 
       <Paper sx={{ borderRadius: 3, overflow: 'hidden' }}>
         <TableContainer>
-          <Table>
+          <Table sx={{ minWidth: 1050 }}>
             <TableHead>
               <TableRow>
                 <TableCell>Radicado</TableCell>
